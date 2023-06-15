@@ -1,16 +1,28 @@
 """
-Module execution_timer provides a ExecutionTimer class to measure the execution time of a code block.
+    Module execution_timer provides an ExecutionTimer class
+        to measure the execution time of a code block.
+    It offers two usage options: as a context manager and as a decorator.
+
+    * Example usage as a context manager:
+    with ExecutionTimer():
+        main()
+
+    * Example usage as a decorator:
+    @execution_timer
+    def main():
+        # Code block to measure execution time
 """
 
 from datetime import datetime
 from time import perf_counter_ns
 from dataclasses import dataclass
+from rich.console import Console
 
 
 @dataclass(slots=True)
 class ExecutionTimer:
     """
-    Timer is a context manager that measures the execution time of a code block.
+    ExecutionTimer is a context manager that measures the execution time of a code block.
     It captures the start time, end time, and duration of the code block.
     """
 
@@ -18,6 +30,7 @@ class ExecutionTimer:
     end_date: datetime = None
     start_time_ns: int = None
     end_time_ns: int = None
+    console: Console = Console()
 
     def __post_init__(self):
         self.start_date = datetime.now()
@@ -34,13 +47,14 @@ class ExecutionTimer:
         except AttributeError:
             print('An error occurred: __exit__')
 
-    def current_datetime(self, date: datetime) -> str:
+    @staticmethod
+    def current_datetime(date: datetime) -> str:
         """
         Formats a datetime object as a string in the format 'YYYY-MM-DD HH:MM:SS'.
         """
 
-        return f'{date.year}-{date.month:02d}-{date.day:02d}' \
-               f' {date.hour:02d}:{date.minute:02d}:{date.second:02d}'
+        return f'[yellow]{date.year}-{date.month:02d}-{date.day:02d}' \
+               f' [white]{date.hour:02d}:{date.minute:02d}:{date.second:02d}'
 
     def calculate_duration(self) -> str:
         """
@@ -56,7 +70,7 @@ class ExecutionTimer:
         hours, remainder = map(int, divmod(duration_s, 3600))
         minutes, seconds = map(int, divmod(remainder, 60))
 
-        return f'{hours:02d}:{minutes:02d}:{seconds:02d}:' \
+        return f'[white]{hours:02d}:{minutes:02d}:{seconds:02d}:' \
                f'{duration_ms:03d}:{duration_us:03d}:{duration_ns:03d}'
 
     def calculate_duration_alt(self) -> tuple[float, ...]:
@@ -83,40 +97,25 @@ class ExecutionTimer:
         hours_alt, minutes_alt, seconds_alt = map(
             float, self.calculate_duration_alt())
 
-        print('        YYYY-MM-DD HH:MM:SS:ms :µs :ns')
-        print(f'[START] {start_date_str}')
-        print(f'[END]   {end_date_str}')
-        print(f'[TIME]  YYYY-MM-DD {duration}')
-        print(f'[TIME]  {hours_alt:.10f} hours')
-        print(f'[TIME]  {minutes_alt:.10f} minutes')
-        print(f'[TIME]  {seconds_alt} seconds')
+        self.console.print('\n[bold white]╚═══════════ EXECUTION TIME ═══════════╝')
+        self.console.print('[bold bright_yellow]        YYYY-MM-DD HH:MM:SS:ms :µs :ns')
+        self.console.print(f'[red][[bold white]START[red]] {start_date_str}')
+        self.console.print(f'[red][[bold white]END[red]]   {end_date_str}')
+        self.console.print(f'[red][[bold white]TIME[red]]  [bold bright_yellow]YYYY-MM-DD {duration}')
+        self.console.print('[bold bright_red]                   ^^^^^^^^^^^^')
+        self.console.print(f'[red][[bold white]TIME[red]]  [white]{hours_alt:.9f} hours')
+        self.console.print(f'[red][[bold white]TIME[red]]  [white]{minutes_alt:.9f} minutes')
+        self.console.print(f'[red][[bold white]TIME[red]]  [white]{seconds_alt:.9f} seconds')
 
 
-"""
-    Example of using the ExecutionTimer context manager.
-"""
+def execution_timer(func):
+    """
+    Decorator that measures the execution time of a function using ExecutionTimer.
+    """
 
-# def calculate_sum(upper_limit: int) -> int:
-#     """
-#     Calculates the sum of integers from 1 to n.
-#     """
-#
-#     sum_result = 0
-#     for i in range(1, upper_limit + 1):
-#         sum_result += i
-#         sleep(.5)  # Simulating a time-consuming operation
-#     return sum_result
-#
-#
-# def main():
-#     """
-#     Main function to execute the code block with the Timer context manager.
-#     """
-#
-#     sum_result = calculate_sum(1)
-#     print(f'Sum of 1..1000 = {sum_result}')
-#
-#
-# if __name__ == '__main__':
-#     with ExecutionTimer():
-#         main()
+    def wrapper(*args, **kwargs):
+        with ExecutionTimer():
+            result = func(*args, **kwargs)
+        return result
+
+    return wrapper
