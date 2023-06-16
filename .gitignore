@@ -1,2 +1,7 @@
 *.exe
 .idea/
+*.mkv
+*.srt
+*.aas
+*.mp4
+*.mp3

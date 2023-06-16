@@ -70,17 +70,6 @@
                     "name": "100"
                 }
             ]
-        },
-        {
-            "name": "Czy t\u0142umaczy\u0107 rozdzielone napisy?",
-            "suboptions": [
-                {
-                    "name": true
-                },
-                {
-                    "name": false
-                }
-            ]
         }
     ],
     "VOICE ACTORS": [
