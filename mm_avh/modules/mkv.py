@@ -21,8 +21,17 @@ class MkvToolNix:
 
     console: Console = Console(theme=Theme({"repr.number": "bold red"}))
 
-    def mkv_info_json(self):
-        command: List[str] = [
+    def get_mkv_info(self):
+        command = self._get_mkv_info_command()
+        process = Popen(command, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        output, error = process.communicate()
+        if process.returncode == 0:
+            return self._parse_mkv_info_output(output)
+        else:
+            print(f'Error: {error}')
+
+    def _get_mkv_info_command(self):
+        return [
             self.mkv_merge,
             '--ui-language',
             'en',
@@ -32,18 +41,9 @@ class MkvToolNix:
             path.join(self.working_space, self.filename)
         ]
 
-        process: Popen = Popen(
-            command, stdout=PIPE, stderr=PIPE, universal_newlines=True)
-        output, error = map(str.strip, process.communicate())
-
-        if process.returncode == 0:
-            return self.mkv_info_print(output)
-        else:
-            print(f'Error: {error}')
-
-    def mkv_info_print(self, output: str) -> dict:
-        data: dict = json.loads(output)
-        tracks_data: List[dict] = []
+    def _parse_mkv_info_output(self, output):
+        data = json.loads(output)
+        tracks_data = []
 
         for track in data['tracks']:
             track_data = {
@@ -62,12 +62,15 @@ class MkvToolNix:
 
             tracks_data.append(track_data)
 
+        return data
+
+    def print_mkv_info(self, data):
         self.console.print('WYODRĘBNIANIE Z PLIKU:', style='bold bright_yellow')
         self.console.print(self.filename, style='bold white')
         self.console.print('ID  TYPE        CODEK                LANG  LANG_IETF  PROPERTIES',
                            style='bold yellow')
 
-        sorted_tracks = sorted(tracks_data, key=lambda x: x['id'])
+        sorted_tracks = sorted(data, key=lambda x: x['id'])
         for track in sorted_tracks:
             self.console.print(
                 f'[bold bright_yellow]{track["id"]:2}[/bold bright_yellow]  '
@@ -78,21 +81,41 @@ class MkvToolNix:
                 f'{track["properties"]}'
             )
         print('')
-        return data
 
-    def mkv_extract_track(self, data: dict):
+    def extract_tracks(self, data):
+        tracks_to_extract = self._get_tracks_to_extract()
+        for track_id in tracks_to_extract:
+            track = data['tracks'][track_id]
+            codec_id = track['properties']['codec_id']
+            format_extension = self._get_format_extension(codec_id)
+            filename = f'{self.filename[:-4]}.{format_extension}'
+            out_file = path.join(self.working_space_temp, filename)
+            command = self._get_extract_command(track_id, out_file)
+            process = Popen(command)
+            self.console.print(
+                f'Ekstrakcja ścieżki {track_id} do pliku {filename}', style='bold bright_yellow')
+            process.wait()
 
-        tracks_to_extract: List[int] = []
+            if process.returncode == 0:
+                self.console.print('Ekstrakcja zakończona pomyślnie.\n', style='bold green')
+            else:
+                self.console.print('Wystąpił błąd podczas ekstrakcji.\n', style='bold red')
+
+    def _get_tracks_to_extract(self):
+        tracks_to_extract = []
         while True:
             try:
                 self.console.print('Podaj ID ścieżki do wyciągnięcia (naciśnij ENTER, aby zakończyć): ',
                                    style='bold green', end='')
-                track_id = int(input(''))
+                track_id = int(input())
                 tracks_to_extract.append(track_id)
             except ValueError:
                 self.console.print('Pominięto wyciąganie ścieżki.\n', style='bold red')
                 break
 
+        return tracks_to_extract
+
+    def _get_format_extension(self, codec_id):
         format_dict = {
             'A_AAC/MPEG2/*': 'aac',
             'A_AAC/MPEG4/*': 'aac',
@@ -136,24 +159,12 @@ class MkvToolNix:
             'V_VP9': 'ivf'
         }
 
-        for track_id in tracks_to_extract:
-            track = data['tracks'][track_id]
-            codec_id = track['properties']['codec_id']
-            format_extension = format_dict.get(codec_id, 'mkv')
-            filename = f'{self.filename[:-4]}.{format_extension}'
-            out_file = path.join(self.working_space_temp, filename)
-            command: List[str] = [
-                self.mkv_extract,
-                'tracks',
-                path.join(self.working_space, self.filename),
-                f'{track_id}:{out_file}'
-            ]
-            process: Popen = Popen(command)
-            self.console.print(
-                f'Ekstrakcja ścieżki {track_id} do pliku {filename}', style='bold bright_yellow')
-            process.wait()
+        return format_dict.get(codec_id, 'mkv')
 
-            if process.returncode == 0:
-                self.console.print('Ekstrakcja zakończona pomyślnie.\n', style='bold green')
-            else:
-                self.console.print('Wystąpił błąd podczas ekstrakcji.\n', style='bold red')
+    def _get_extract_command(self, track_id, out_file):
+        return [
+            self.mkv_extract,
+            'tracks',
+            path.join(self.working_space, self.filename),
+            f'{track_id}:{out_file}'
+        ]
