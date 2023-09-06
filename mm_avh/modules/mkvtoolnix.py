@@ -1,6 +1,6 @@
 from subprocess import Popen, PIPE, CalledProcessError
 from json import loads
-from typing import List
+from typing import Dict, List, Set
 from os import getcwd, pardir, path
 from dataclasses import dataclass
 import sys
@@ -10,6 +10,20 @@ from rich.console import Console
 
 @dataclass(slots=True)
 class MkvToolNix:
+    """
+        The MkvToolNix class is used for manipulating MKV files. It uses tools from the MKVToolNix package such as mkvextract, mkvmerge, and mkvinfo.
+
+        Attributes:
+        filename: The name of the MKV file to be processed.
+        working_space: The directory where the MKV file is located.
+        working_space_output: The directory where the output files will be saved.
+        working_space_temp: The directory where temporary files will be saved during processing.
+        mkvtoolnix_folder: The directory where the MKVToolNix tools are located.
+        mkv_extract_path: The path to the mkvextract executable.
+        mkv_merge_path: The path to the mkvmerge executable.
+        mkv_info_path: The path to the mkvinfo executable.
+        console: A Console object from the rich library for pretty printing.
+    """
     filename: str
     working_space: str
     working_space_output: str
@@ -24,13 +38,24 @@ class MkvToolNix:
     console: Console = Console(theme=Theme({"repr.number": "bold red"}))
 
     def check_executables(self) -> None:
-        executables: List[str] = [self.mkv_extract_path, self.mkv_merge_path, self.mkv_info_path]
+        """
+            Checks if the MKVToolNix executables exist at the specified paths.
+            If any executable is not found, the program will exit with an error message.
+        """
+        executables: List[str] = [self.mkv_extract_path,
+                                  self.mkv_merge_path, self.mkv_info_path]
         for executable in executables:
             if not path.exists(executable):
-                self.console.print(f'Error: {executable} not found', style='bold red')
+                self.console.print(
+                    f'Error: {executable} not found', style='bold red')
                 sys.exit()
 
     def get_mkv_info(self) -> dict:
+        """
+            Retrieves information about the MKV file using the mkvinfo tool.
+            The information is returned as a dictionary and also printed to the console.
+            If an error occurs during the process, the program will exit with an error message.
+        """
         try:
             self.check_executables()
             command: List[str] = self._get_mkv_info_command()
@@ -50,6 +75,10 @@ class MkvToolNix:
         return {}
 
     def _get_mkv_info_command(self) -> List[str]:
+        """
+            Constructs the command to be used for retrieving information about the MKV file with mkvinfo.
+            Returns the command as a list of strings.
+        """
         return [
             self.mkv_merge_path,
             '--ui-language',
@@ -61,6 +90,10 @@ class MkvToolNix:
         ]
 
     def _parse_tracks_data(self, data: dict) -> List[dict]:
+        """
+            Parses the track data from the dictionary returned by mkvinfo.
+            Returns a list of dictionaries, each representing a track in the MKV file.
+        """
         tracks_data: List[dict] = []
 
         for track in data['tracks']:
@@ -70,6 +103,10 @@ class MkvToolNix:
         return sorted(tracks_data, key=lambda x: x['id'])
 
     def _parse_track_data(self, track: dict) -> dict:
+        """
+            Parses the data for a single track from the dictionary returned by mkvinfo.
+            Returns a dictionary with the track's ID, type, codec ID, language, IETF language, and properties.
+        """
         properties = track['properties']
         track_data: dict = {
             'id': track['id'],
@@ -84,6 +121,10 @@ class MkvToolNix:
 
     @staticmethod
     def _get_track_properties(properties: dict) -> str:
+        """
+            Retrieves the properties of a track from the dictionary returned by mkvinfo.
+            Returns the properties as a string.
+        """
         if 'display_dimensions' in properties:
             return properties['display_dimensions']
         if 'audio_sampling_frequency' in properties:
@@ -91,7 +132,12 @@ class MkvToolNix:
         return 'None'
 
     def _print_mkv_info(self, tracks_data: List[dict]) -> None:
-        self.console.print('WYODRĘBNIANIE Z PLIKU:', style='bold bright_yellow')
+        """
+            Prints the information about the MKV file to the console.
+            The information includes the ID, type, codec ID, language, IETF language, and properties of each track.
+        """
+        self.console.print('WYODRĘBNIANIE Z PLIKU:',
+                           style='bold bright_yellow')
         self.console.print(self.filename, style='bold white')
         self.console.print('ID  TYPE        CODEK                LANG  LANG_IETF  PROPERTIES',
                            style='bold yellow')
@@ -107,43 +153,63 @@ class MkvToolNix:
             )
         self.console.print()
 
-    def mkv_extract_track(self, data: dict) -> None:
-        tracks_to_extract: List[int] = self._get_tracks_to_extract()
+    def mkv_extract_track(self, data: Dict[str, any]) -> None:
+        """
+            Extracts the specified tracks from the MKV file using the mkvextract tool.
+            The tracks to be extracted are specified by their IDs.
+            The user is prompted to enter the IDs of the tracks to be extracted.
+            If an error occurs during the process, the program will exit with an error message.
+        """
+        valid_track_range: range = range(len(data['tracks']))
+        tracks_to_extract: Set[int] = set()
 
-        for track_id in tracks_to_extract:
-            track: str = data['tracks'][track_id]
-            codec_id: str = track['properties']['codec_id']
-            format_extension: str = self._get_format_extension(codec_id)
-            filename: str = f'{self.filename[:-4]}.{format_extension}'
-            out_file: str = path.join(self.working_space_temp, filename)
-            command: List[str] = self._get_extract_command(track_id, out_file)
-
-            with Popen(command) as process:
-                self.console.print(
-                    f'Ekstrakcja ścieżki {track_id} do pliku {filename}', style='bold bright_yellow')
-                process.wait()
-
-                if process.returncode == 0:
-                    self.console.print('Ekstrakcja zakończona pomyślnie.\n', style='bold green')
-                else:
-                    self.console.print('Wystąpił błąd podczas ekstrakcji.\n', style='bold red')
-
-    def _get_tracks_to_extract(self) -> List[int]:
-        tracks_to_extract: List[int] = []
         while True:
             try:
                 self.console.print('Podaj ID ścieżki do wyciągnięcia (naciśnij ENTER, aby zakończyć): ',
                                    style='bold green', end='')
-                track_id: int = int(input())
-                tracks_to_extract.append(track_id)
-            except ValueError:
-                self.console.print('Pominięto wyciąganie ścieżki.\n', style='bold red')
-                break
+                track_input: str = input().strip()
+                if not track_input:
+                    break
+                track_id: int = int(track_input)
 
-        return tracks_to_extract
+                if track_id in valid_track_range:
+                    tracks_to_extract.add(track_id)
+                else:
+                    self.console.print(
+                        'Nieprawidłowy ID ścieżki. Proszę podać poprawny numer ścieżki.\n', style='bold red')
+            except ValueError:
+                self.console.print(
+                    'Pominięto wyciąganie ścieżki.\n', style='bold red')
+
+        try:
+            for track_id in tracks_to_extract:
+                track: str = data['tracks'][track_id]
+                codec_id: str = track['properties']['codec_id']
+                format_extension: str = self._get_format_extension(codec_id)
+                filename: str = f'{self.filename[:-4]}.{format_extension}'
+                out_file: str = path.join(self.working_space_temp, filename)
+                command: List[str] = self._get_extract_command(
+                    track_id, out_file)
+
+                with Popen(command) as process:
+                    self.console.print(
+                        f'\nEkstrakcja ścieżki {track_id} do pliku {filename}', style='bold bright_yellow')
+                    process.wait()
+
+        except (IndexError, KeyError):
+            self.console.print(
+                'Znaleziono nieprawidłowe ID ścieżki!', style='red bold')
+            self.mkv_extract_track(data)
+
+        self.console.print(
+            'Ekstrakcja zakończona pomyślnie.\n', style='bold green')
 
     @staticmethod
     def _get_format_extension(codec_id: str) -> str:
+        """
+            Determines the file extension for a track based on its codec ID.
+            Returns the file extension as a string.
+        """
         format_dict: dict = {
             'A_AAC/MPEG2/*': 'aac',
             'A_AAC/MPEG4/*': 'aac',
@@ -190,6 +256,10 @@ class MkvToolNix:
         return format_dict.get(codec_id, 'mkv')
 
     def _get_extract_command(self, track_id: int, out_file: str) -> List[str]:
+        """
+            Constructs the command to be used for extracting a track from the MKV file with mkvextract.
+            Returns the command as a list of strings.
+        """
         return [
             self.mkv_extract_path,
             'tracks',

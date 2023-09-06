@@ -149,6 +149,17 @@ class Config:
                     'default_voice_volume': '+0%',
                 },
             },
+            {
+                'name': 'TTS - *Głos* - ElevenLans',
+                'description': {
+                    'speed': 'Szybkość głosu: Auto',
+                    'volume': 'Głośność głou: Auto',
+                },
+                'default_options': {
+                    'default_voice_speed': 'auto',
+                    'default_voice_volume': 'auto',
+                },
+            },
         ]
 
     @staticmethod
@@ -373,7 +384,8 @@ class Settings:
             No specific exceptions are raised.
         """
 
-        translator = Settings.set_option('Wybierz tłumacza: ', Config.get_translators())
+        translator = Settings.set_option(
+            'Wybierz tłumacza: ', Config.get_translators())
         if translator is None:
             translator = settings.translator if settings else None
         return translator
@@ -393,7 +405,8 @@ class Settings:
             No specific exceptions are raised.
         """
 
-        console.print('\n[bold bright_yellow]Czy chcesz ustawić klucz API DeepL?')
+        console.print(
+            '\n[bold bright_yellow]Czy chcesz ustawić klucz API DeepL?')
         console.print('[bold bright_green]T lub Y - tak: ', end='')
         if input().lower() in ('t', 'y'):
             console.print(
@@ -402,7 +415,8 @@ class Settings:
             deepl_api_key = input('')
             if deepl_api_key == '':
                 deepl_api_key = settings.deepl_api_key if settings else None
-                console.print('[bold bright_red]Niepoprawna wartość. Nie zmieniono wartości!')
+                console.print(
+                    '[bold bright_red]Niepoprawna wartość. Nie zmieniono wartości!')
         else:
             deepl_api_key = settings.deepl_api_key if settings else None
         return deepl_api_key
@@ -422,15 +436,19 @@ class Settings:
             No specific exceptions are raised.
         """
 
-        console.print('\n[bold bright_yellow]Czy chcesz ustawić token dostępu do chat GPT?')
+        console.print(
+            '\n[bold bright_yellow]Czy chcesz ustawić token dostępu do chat GPT?')
         console.print('[bold bright_green]T lub Y - tak: ', end='')
         if input().lower() in ('t', 'y'):
-            console.print('[bold bright_yellow]Token dostępu (accessToken): https://chat.openai.com/api/auth/session')
-            console.print('[bold bright_green]Podaj token dostępu do chat GPT: ', end='')
+            console.print(
+                '[bold bright_yellow]Token dostępu (accessToken): https://chat.openai.com/api/auth/session')
+            console.print(
+                '[bold bright_green]Podaj token dostępu do chat GPT: ', end='')
             chat_gpt_access_token = input()
             if chat_gpt_access_token == '':
                 chat_gpt_access_token = settings.chat_gpt_access_token if settings else None
-                console.print('[bold bright_red]Niepoprawna wartość. Nie zmieniono wartości!')
+                console.print(
+                    '[bold bright_red]Niepoprawna wartość. Nie zmieniono wartości!')
         else:
             chat_gpt_access_token = settings.chat_gpt_access_token if settings else None
         return chat_gpt_access_token
@@ -450,15 +468,19 @@ class Settings:
             No specific exceptions are raised.
         """
 
-        console.print('\n[bold bright_yellow]Czy chcesz ustawić ciasteczka Edge AI?')
+        console.print(
+            '\n[bold bright_yellow]Czy chcesz ustawić ciasteczka Edge AI?')
         console.print('[bold bright_green]T lub Y - tak: ', end='')
         if input().lower() in ('t', 'y'):
-            console.print('[bold bright_yellow]Ciasteczka Edge AI można wygenerować w przeglądarce Edge')
-            console.print('[bold bright_green]Podaj ciasteczka Edge AI: ', end='')
+            console.print(
+                '[bold bright_yellow]Ciasteczka Edge AI można wygenerować w przeglądarce Edge')
+            console.print(
+                '[bold bright_green]Podaj ciasteczka Edge AI: ', end='')
             edge_ai_cookies = input()
             if edge_ai_cookies == '':
                 edge_ai_cookies = settings.edge_ai_cookies if settings else None
-                console.print('[bold bright_red]Niepoprawna wartość. Nie zmieniono wartości!')
+                console.print(
+                    '[bold bright_red]Niepoprawna wartość. Nie zmieniono wartości!')
         else:
             edge_ai_cookies = settings.edge_ai_cookies if settings else None
         return edge_ai_cookies
@@ -499,7 +521,8 @@ class Settings:
             No specific exceptions are raised.
         """
 
-        tts = Settings.set_option('Wybierz silnik TTS: ', Config.get_voice_actors())
+        tts = Settings.set_option(
+            'Wybierz silnik TTS: ', Config.get_voice_actors())
         if tts is None:
             tts = settings.tts if settings else None
         return tts
@@ -522,7 +545,8 @@ class Settings:
 
         default_speed = None
         default_volume = None
-        voice_actor = next((actor for actor in Config.get_voice_actors() if actor['name'] == tts), None)
+        voice_actor = next(
+            (actor for actor in Config.get_voice_actors() if actor['name'] == tts), None)
         if voice_actor:
             default_speed = voice_actor['default_options']['default_voice_speed']
             default_volume = voice_actor['default_options']['default_voice_volume']
@@ -548,7 +572,8 @@ class Settings:
         tts_speed_choice = input()
         try:
             tts_speed = tts_speed_choice if (
-                    Settings.is_valid_speed(tts_speed_choice, tts) and tts_speed_choice.strip() != ''
+                Settings.is_valid_speed(
+                    tts_speed_choice, tts) and tts_speed_choice.strip() != ''
             ) else default_speed
         except ValueError:
             tts_speed = default_speed
@@ -574,7 +599,8 @@ class Settings:
         tts_volume_choice = input()
         try:
             tts_volume = tts_volume_choice if (
-                    Settings.is_valid_volume(tts_volume_choice, tts) and tts_volume_choice.strip() != ''
+                Settings.is_valid_volume(
+                    tts_volume_choice, tts) and tts_volume_choice.strip() != ''
             ) else default_volume
         except ValueError:
             tts_volume = default_volume

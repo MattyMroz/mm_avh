@@ -97,15 +97,21 @@ class ExecutionTimer:
         hours_alt, minutes_alt, seconds_alt = map(
             float, self.calculate_duration_alt())
 
-        self.console.print('\n[bold white]╚═══════════ EXECUTION TIME ═══════════╝')
-        self.console.print('[bold bright_yellow]        YYYY-MM-DD HH:MM:SS:ms :µs :ns')
+        self.console.print(
+            '\n[bold white]╚═══════════ EXECUTION TIME ═══════════╝')
+        self.console.print(
+            '[bold bright_yellow]        YYYY-MM-DD HH:MM:SS:ms :µs :ns')
         self.console.print(f'[red][[bold white]START[red]] {start_date_str}')
         self.console.print(f'[red][[bold white]END[red]]   {end_date_str}')
-        self.console.print(f'[red][[bold white]TIME[red]]  [bold bright_yellow]YYYY-MM-DD {duration}')
+        self.console.print(
+            f'[red][[bold white]TIME[red]]  [bold bright_yellow]YYYY-MM-DD {duration}')
         self.console.print('[bold bright_red]                   ^^^^^^^^^^^^')
-        self.console.print(f'[red][[bold white]TIME[red]]  [white]{hours_alt:.9f} hours')
-        self.console.print(f'[red][[bold white]TIME[red]]  [white]{minutes_alt:.9f} minutes')
-        self.console.print(f'[red][[bold white]TIME[red]]  [white]{seconds_alt:.9f} seconds')
+        self.console.print(
+            f'[red][[bold white]TIME[red]]  [white]{hours_alt:.9f} hours')
+        self.console.print(
+            f'[red][[bold white]TIME[red]]  [white]{minutes_alt:.9f} minutes')
+        self.console.print(
+            f'[red][[bold white]TIME[red]]  [white]{seconds_alt:.9f} seconds')
 
 
 def execution_timer(func):
