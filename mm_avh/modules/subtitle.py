@@ -1,6 +1,4 @@
 import contextlib
-from subprocess import Popen, PIPE, CalledProcessError
-from json import loads
 from typing import List
 from os import path, remove, makedirs, rename
 from dataclasses import dataclass
@@ -139,9 +137,9 @@ class SubtitleRefactor:
 
             sub: Subtitle = Subtitle(file_path)
             sub.export()
-            self.console.print("Zamieniono na srt:",
-                               style='bold green')
-            self.console.print(file_path)
+            # self.console.print("Zamieniono na srt:",
+            #                    style='bold green')
+            # self.console.print(file_path.replace('.ass', '.srt'))
         print('')
 
     def move_srt(self, target_folder: str) -> None:
@@ -161,7 +159,6 @@ class SubtitleRefactor:
         source_file_path: str = path.join(
             self.working_space_temp, self.filename)
         move(source_file_path, target_file_path)
-        self.console.print(target_file_path)
 
     def txt_to_srt(self) -> None:
         """
@@ -186,8 +183,8 @@ class SubtitleRefactor:
             file.write(subs.to_string(format_='srt'))
 
         remove(txt_file_path)
-        self.console.print(
-            f"Przekonwertowano {self.filename} na srt i zapisano:", style='bold green')
+        # self.console.print(
+        #     f"Przekonwertowano {self.filename} na srt.\n", style='bold green')
 
         self.filename = self.filename.replace('.txt', '.srt')
         self.move_srt('main_subs')
@@ -211,7 +208,8 @@ class SubtitleRefactor:
         subs.save(srt_file_path)
 
         self.console.print(
-            f"Przekonwertowano liczby na słowa w {self.filename}", style='bold green')
+            "\nPrzekonwertowano liczby na słowa:", style='bold green')
+        self.console.print(srt_file_path)
 
     # ! DOTO przenieść do innej klasy
     # Metoda do zmiany kodowania pliku na ANSI
