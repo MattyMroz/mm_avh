@@ -157,7 +157,11 @@ class NumberInWords:
                 integer_part //= 1000
             for i, n in enumerate(triples):
                 if n > 0:
-                    if i > 0:
+                    if i > 0 and n == 1:
+                        p: int = self._case(n)
+                        w: str = self.BIG[i][p]
+                        words.append(w)
+                    elif i > 0:
                         p: int = self._case(n)
                         w: str = self.BIG[i][p]
                         words.append(

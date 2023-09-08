@@ -15,7 +15,6 @@
         "translator": "Google Translator",
         "deepl_api_key": "null",
         "chat_gpt_access_token": null,
-        "edge_ai_cookies": null,
         "translated_line_count": "50",
         "tts": "TTS - Agnieszka - Ivona",
         "tts_speed": "5",
@@ -25,6 +24,7 @@
 """
 
 import json
+import webbrowser
 from dataclasses import dataclass, asdict
 from typing import Optional, Tuple, List, Dict
 from rich.console import Console
@@ -60,12 +60,6 @@ class Config:
                     {'name': 'ChatGPT + Google Translate'}
                 ],
             },
-            {
-                'name': 'Edge AI',
-                'suboptions': [
-                    {'name': 'Edge AI + Google Translate'}
-                ],
-            },
         ]
 
     @staticmethod
@@ -80,10 +74,16 @@ class Config:
             List[Dict[str, str]]: A list of translation options.
         """
         return [
+            {'name': '5'},
+            {'name': '10'},
+            {'name': '20'},
             {'name': '30'},
             {'name': '40'},
             {'name': '50'},
-            {'name': '75'},
+            {'name': '60'},
+            {'name': '70'},
+            {'name': '80'},
+            {'name': '90'},
             {'name': '100'},
         ]
 
@@ -189,7 +189,6 @@ class Settings:
         translator (Optional[str]): The selected translator.
         deepl_api_key (Optional[str]): The API key for DeepL translation service.
         chat_gpt_access_token (Optional[str]): The access token for ChatGPT API.
-        edge_ai_cookies (Optional[str]): The Edge AI cookies.
         translated_line_count (Optional[str]): The number of translated lines.
         tts (Optional[str]): The selected TTS engine.
         tts_speed (Optional[str]): The speed of the TTS voice.
@@ -204,7 +203,6 @@ class Settings:
         get_translator(settings: Optional['Settings']) -> Optional[str]: Get the selected translator.
         get_deepl_api_key(settings: Optional['Settings']) -> Optional[str]: Get the DeepL API key.
         get_chat_gpt_access_token(settings: Optional['Settings']) -> Optional[str]: Get the ChatGPT access token.
-        get_edge_ai_cookies(settings: Optional['Settings']) -> Optional[str]: Get the Edge AI cookies.
         get_translated_line_count(settings: Optional['Settings']) -> Optional[str]: Get the number of translated lines.
         get_tts(settings: Optional['Settings']) -> Optional[str]: Get the selected TTS engine.
         get_default_speed_volume(tts: str) -> Tuple[Optional[str], Optional[str]]: Get the default speed and volume for a TTS engine.
@@ -217,7 +215,6 @@ class Settings:
     translator: Optional[str] = None
     deepl_api_key: Optional[str] = None
     chat_gpt_access_token: Optional[str] = None
-    edge_ai_cookies: Optional[str] = None
     translated_line_count: Optional[str] = None
     tts: Optional[str] = None
     tts_speed: Optional[str] = None
@@ -245,7 +242,6 @@ class Settings:
                 translator='Google Translator',
                 deepl_api_key=None,
                 chat_gpt_access_token=None,
-                edge_ai_cookies=None,
                 translated_line_count='50',
                 tts='TTS - Agnieszka - Ivona',
                 tts_speed='5',
@@ -269,7 +265,6 @@ class Settings:
             translator=data.get('translator'),
             deepl_api_key=data.get('deepl_api_key'),
             chat_gpt_access_token=data.get('chat_gpt_access_token'),
-            edge_ai_cookies=data.get('edge_ai_cookies'),
             translated_line_count=data.get('translated_line_count'),
             tts=data.get('tts'),
             tts_speed=data.get('tts_speed'),
@@ -407,7 +402,7 @@ class Settings:
 
         console.print(
             '\n[bold bright_yellow]Czy chcesz ustawić klucz API DeepL?')
-        console.print('[bold bright_green]T lub Y - tak: ', end='')
+        console.print('[bold bright_green](T lub Y - tak): ', end='')
         if input().lower() in ('t', 'y'):
             console.print(
                 '[bold bright_yellow]Klucz API DeepL można wygenerować na stronie https://www.deepl.com/pro-api')
@@ -438,10 +433,11 @@ class Settings:
 
         console.print(
             '\n[bold bright_yellow]Czy chcesz ustawić token dostępu do chat GPT?')
-        console.print('[bold bright_green]T lub Y - tak: ', end='')
+        console.print('[bold bright_green](T lub Y - tak): ', end='')
         if input().lower() in ('t', 'y'):
             console.print(
                 '[bold bright_yellow]Token dostępu (accessToken): https://chat.openai.com/api/auth/session')
+            webbrowser.open('https://chat.openai.com/api/auth/session')
             console.print(
                 '[bold bright_green]Podaj token dostępu do chat GPT: ', end='')
             chat_gpt_access_token = input()
@@ -452,38 +448,6 @@ class Settings:
         else:
             chat_gpt_access_token = settings.chat_gpt_access_token if settings else None
         return chat_gpt_access_token
-
-    @staticmethod
-    def get_edge_ai_cookies(settings: Optional['Settings']) -> Optional[str]:
-        """
-        Prompt the user to set the Edge AI cookies or retrieve them from the user settings.
-
-        Args:
-            settings (Optional['Settings']): The user settings object.
-
-        Returns:
-            Optional[str]: The Edge AI cookies or None if not set.
-
-        Raises:
-            No specific exceptions are raised.
-        """
-
-        console.print(
-            '\n[bold bright_yellow]Czy chcesz ustawić ciasteczka Edge AI?')
-        console.print('[bold bright_green]T lub Y - tak: ', end='')
-        if input().lower() in ('t', 'y'):
-            console.print(
-                '[bold bright_yellow]Ciasteczka Edge AI można wygenerować w przeglądarce Edge')
-            console.print(
-                '[bold bright_green]Podaj ciasteczka Edge AI: ', end='')
-            edge_ai_cookies = input()
-            if edge_ai_cookies == '':
-                edge_ai_cookies = settings.edge_ai_cookies if settings else None
-                console.print(
-                    '[bold bright_red]Niepoprawna wartość. Nie zmieniono wartości!')
-        else:
-            edge_ai_cookies = settings.edge_ai_cookies if settings else None
-        return edge_ai_cookies
 
     @staticmethod
     def get_translated_line_count(settings: Optional['Settings']) -> Optional[str]:
@@ -646,7 +610,6 @@ class Settings:
         translator = Settings.get_translator(settings)
         deepl_api_key = Settings.get_deepl_api_key(settings)
         chat_gpt_access_token = Settings.get_chat_gpt_access_token(settings)
-        edge_ai_cookies = Settings.get_edge_ai_cookies(settings)
         translated_line_count = Settings.get_translated_line_count(settings)
         tts = Settings.get_tts(settings)
         default_speed, default_volume = Settings.get_default_speed_volume(tts)
@@ -659,7 +622,6 @@ class Settings:
             translator=translator,
             deepl_api_key=deepl_api_key,
             chat_gpt_access_token=chat_gpt_access_token,
-            edge_ai_cookies=edge_ai_cookies,
             translated_line_count=translated_line_count,
             tts=tts,
             tts_speed=tts_speed,

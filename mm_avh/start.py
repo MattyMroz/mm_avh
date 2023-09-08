@@ -34,10 +34,10 @@ def main():
     console.print('Czy chcesz zmienić ustawienia? (T lub Y - tak):',
                   style='bold green', end=' ')
     if input().lower() in ('t', 'y'):
-        # chdir(path.dirname('./data/'))
         Settings.change_settings_save_to_file('./data/settings.json')
-        # chdir(path.dirname('../'))
-
+        console.print('Zapisano ustawienia.\n', style='bold green')
+    else:
+        console.print('Pomijam tę opcję.\n', style='bold green')
     # path.dirname('./modules/')
 
     # Extracting tracks from MKV files
@@ -80,6 +80,43 @@ def main():
         if filename.endswith('.txt'):
             subtitle.txt_to_srt()
 
+    # Translating subtitles
+    settings: Settings = Settings.load_from_file('./data/settings.json')
+
+    main_subs_folder: str = path.join(WORKING_SPACE_TEMP, 'main_subs')
+    alt_subs_folder: str = path.join(WORKING_SPACE_TEMP, 'alt_subs')
+
+    files_to_translate = {}
+
+    main_subs_files: List[str] = [
+        filename for filename in listdir(main_subs_folder)
+        if path.isfile(path.join(main_subs_folder, filename)) and filename.endswith('.srt')
+    ]
+
+    main_subs_files = sorted(main_subs_files)
+
+    console.print('TŁUMACZENIE PLIKÓW', style='bold yellow')
+    for filename in main_subs_files:
+        console.print(
+            "Czy chcesz przetłumaczyć plik?", style='bold green')
+        console.print(filename)
+        console.print("(T lub Y - tak):", style='bold green', end=' ')
+        files_to_translate[filename] = input().lower() in ('t', 'y')
+        console.print()
+
+    translator_instance = SubtitleTranslator()
+
+    for filename, should_translate in files_to_translate.items():
+        if should_translate:
+            translator_instance.translate_srt(filename=filename,
+                                              dir_path=main_subs_folder,
+                                              settings=settings)
+            if path.exists(path.join(alt_subs_folder, filename)):
+                translator_instance.translate_srt(filename=filename,
+                                                  dir_path=alt_subs_folder,
+                                                  settings=settings)
+
+    # Zamiana liczb na słowa
     console.print(
         '\nLICZBY NA SŁOWA - (BEZ POPRAWNOŚCI GRAMATYCZNEJ)', style='bold yellow')
     console.print('Czy chcesz przekonwertować liczby na słowa w tekście? (T lub Y - tak):',
@@ -99,45 +136,6 @@ def main():
             subtitle.convert_numbers_in_srt()
     else:
         console.print('Pomijam tę opcję.', style='bold green')
-
-    settings: Settings = Settings.load_from_file('./data/settings.json')
-
-    main_subs_folder: str = path.join(WORKING_SPACE_TEMP, 'main_subs')
-    alt_subs_folder: str = path.join(WORKING_SPACE_TEMP, 'alt_subs')
-
-    files_to_translate = {}
-
-    # Pobieramy listę plików z main_subs
-    main_subs_files: List[str] = [
-        filename for filename in listdir(main_subs_folder)
-        if path.isfile(path.join(main_subs_folder, filename)) and filename.endswith('.srt')
-    ]
-
-    # Sortujemy pliki alfabetycznie
-    main_subs_files = sorted(main_subs_files)
-
-    console.print('\nTŁUMACZENIE PLIKÓW', style='bold yellow')
-    for filename in main_subs_files:
-        console.print(
-            "Czy chcesz przetłumaczyć plik?", style='bold green')
-        console.print(filename)
-        console.print("(T lub Y - tak):", style='bold green', end=' ')
-        files_to_translate[filename] = input().lower() in ('t', 'y')
-        console.print()
-
-    # Utwórz instancję klasy SubtitleTranslator
-    translator_instance = SubtitleTranslator()
-
-    # Przetłumacz pliki
-    for filename, should_translate in files_to_translate.items():
-        if should_translate:
-            translator_instance.translate_srt(filename=filename,
-                                              dir_path=main_subs_folder,
-                                              settings=settings)
-            if path.exists(path.join(alt_subs_folder, filename)):
-                translator_instance.translate_srt(filename=filename,
-                                                  dir_path=alt_subs_folder,
-                                                  settings=settings)
 
 
 if __name__ == '__main__':
