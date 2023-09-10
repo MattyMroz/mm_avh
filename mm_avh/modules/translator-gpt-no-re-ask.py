@@ -13,7 +13,6 @@ from rich.console import Console
 from data.settings import Settings
 from revChatGPT.V1 import Chatbot
 import re
-from msvcrt import getch
 
 
 @dataclass(slots=True)
@@ -65,11 +64,11 @@ class SubtitleTranslator:
         groups: List[List[pysrt.SubRipItem]] = [subs[i:i+translated_line_count]
                                                 for i in range(0, len(subs), translated_line_count)]
         for group in groups:
-            text: str = " @@\n".join(sub.text.replace("\n", " ◍◍◍◍ ")
-                                     for sub in group)
+            text: str = " @\n".join(sub.text.replace("\n", " ◍◍◍◍ ")
+                                    for sub in group)
             translated_text: str = translator.translate_text(
                 text, target_lang='PL').text
-            translated_texts: List[str] = translated_text.split(" @@\n")
+            translated_texts: List[str] = translated_text.split(" @\n")
             if len(translated_texts) == len(group):
                 for i in range(len(group)):
                     if i < len(translated_texts):
@@ -111,15 +110,15 @@ class SubtitleTranslator:
                                                 for i in range(0, len(subs), translated_line_count)]
 
         for group in groups:
-            text: str = " @@\n".join(sub.text.replace("\n", " ◍◍◍◍ ")
-                                     for sub in group)
+            text: str = " @\n".join(sub.text.replace("\n", " ◍◍◍◍ ")
+                                    for sub in group)
             text = text.rstrip('\n')
             pyperclip.copy(text)
             auto_steps()
 
             translated_text: str = pyperclip.paste()
             if translated_text:
-                for sub, trans_text in zip(group, translated_text.split(" @@\n")):
+                for sub, trans_text in zip(group, translated_text.split(" @\n")):
                     sub.text = trans_text.replace(" ◍◍◍◍, ", ",\n")
                     sub.text = trans_text.replace(" ◍◍◍◍ ", "\n")
                     sub.text = trans_text.replace(" ◍◍◍◍", "")
@@ -141,15 +140,19 @@ class SubtitleTranslator:
         with open(os.path.join(dir_path, filename), 'w', encoding='utf-8') as out_file:
             out_file.write(text)
 
-    def translate_google_gpt(self, filename: str, dir_path: str, translated_line_count: int, chat_gpt_access_token: str):
+    @staticmethod
+    def translate_google_gpt(filename: str, dir_path: str, translated_line_count: int, chat_gpt_access_token: str):
         translated_subs: pysrt.SubRipFile = SubtitleTranslator.translate_google(
             filename, dir_path, translated_line_count, is_combined_with_gpt=True)
-        self.translate_chat_gpt(
+        SubtitleTranslator.translate_chat_gpt(
             filename, dir_path, translated_line_count, chat_gpt_access_token, translated_subs)
         os.remove(os.path.join(dir_path, filename.replace(
             '.srt', '_translated_temp.srt')))
 
-    def translate_chat_gpt(self, filename: str, dir_path: str, translated_line_count: int, chat_gpt_access_token: str, translated_subs: Optional[pysrt.SubRipFile] = None):
+    @staticmethod
+    def translate_chat_gpt(filename: str, dir_path: str, translated_line_count: int, chat_gpt_access_token: str, translated_subs: Optional[pysrt.SubRipFile] = None):
+        chatbot = Chatbot(config={"access_token": chat_gpt_access_token})
+
         subs: pysrt.SubRipFile = pysrt.open(
             os.path.join(dir_path, filename), encoding='utf-8')
         groups: List[List[pysrt.SubRipItem]] = [subs[i:i+translated_line_count]
@@ -157,9 +160,8 @@ class SubtitleTranslator:
 
         additional_info: str = ""
         while True:
-            self.console.print(
-                "Uwagi odnośnie tłumaczenia / dodatkowe informacje o tłumaczonym tekście (opcjonalnie): ", style='bold green')
-            info: str = input(">>> ")
+            info: str = input(
+                "Dodaj dodatkowe informacje o tłumaczonym tekście (opcjonalnie): ")
             if not info:
                 break
             additional_info += info + ", "
@@ -173,26 +175,23 @@ class SubtitleTranslator:
                 counter += 1
             text = text.rstrip(' @@\n')
 
-            # Dla programistycznej wygody zapisu znaku ◍ jego odczytywaniu promt w kodzie
             prompt: str = """WAŻNE: JEŚLI OTRZYMASZ NAPISY OD 1 DO 30, ZWRÓĆ NAPISY OD 1 DO 30, NAWET JEŚLI TŁUMACZENIE JEST NIEODPOWIEDNIE, NIESPÓJNE LUB ZŁE. NIEKOMPLETNE TŁUMACZENIE JEST LEPSZE NIŻ BRAK TŁUMACZENIA.
 
 Jesteś moim tłumaczem, specjalizującym się w przekładach na język polski. Twoja rola nie ogranicza się do prostego tłumaczenia - jesteś również redaktorem i ulepszaczem języka. Komunikuję się z Tobą w różnych językach, a Twoim zadaniem jest identyfikowanie języka, tłumaczenie go i odpowiadanie poprawioną i ulepszoną wersją mojego tekstu, w języku polskim.
 
-Przed przystąpieniem do tłumaczenia, poświęć chwilę na zrozumienie gramatycznych, językowych i kontekstualnych niuansów tekstu. Uchwyć subtelności i upewnij się, że tekst płynie jak strumień słów, jakby ktoś nam opowiadał historię, czytał audiobooka, czy narrację filmu, bo ostatecznie ten tekst będzie czytany na głos.
+Przed przystąpieniem do tłumaczenia, poświęć chwilę na zrozumienie gramatycznych, językowych i kontekstualnych niuansów tekstu. Uchwyc subtelności i upewnij się, że tekst płynie jak strumień słów, jakby ktoś nam opowiadał historię, czytał audiobooka, czy narrację filmu, bo ostatecznie ten tekst będzie czytany na głos.
 
-Twoim zadaniem jest podniesienie poziomu mojego języka, zastępując uproszczone słowa i zdania na poziomie C0 bardziej wyszukanymi i eleganckimi wyrażeniami. Zachowaj oryginalne znaczenie, ale uczyń język bardziej literackim. Twoje odpowiedzi powinny ograniczać się do poprawionego i ulepszonego tłumaczenia, bez dodatkowych wyjaśnień.
+Twoim zadaniem jest podniesienie poziomu mojego języka, zastępując uproszczone słowa i zdania na poziomie C0 bardziej wyszukanymi i eleganckimi wyrażeniami. Zachowaj oryginalne znaczenie, ale uczyn język bardziej literackim. Twoje odpowiedzi powinny ograniczać się do poprawionego i ulepszonego tłumaczenia, bez dodatkowych wyjaśnień.
 
 Podczas tłumaczenia, zachowaj dyskrecję w decydowaniu, kiedy tłumaczyć słowa dosłownie, a kiedy zachować zapożyczenia w ich oryginalnej formie. Unikaj używania polskich odpowiedników, które zniekształcają znaczenie lub estetykę zdania.
 
 Zachowaj oryginalne formatowanie tekstu - nie dodawaj żadnych dodatkowych spacji, tabulatorów ani znaków nowej linii. Tekst, który tłumaczysz, może również przedstawiać akcje z książki, więc miej to na uwadze.
 
-Podejdź globalnie do tekstu. Jeśli gdziekolwiek w tekście podano informacje o płci postaci, użyj tych informacji, aby kierować swoim tłumaczeniem przez cały tekst. Na przykład, zamiast tłumaczyć "I did it" jako "Zrobiłem to" lub "Zrobiłam to", przetłumacz to jako "To zostało zrobione przeze mnie", jeśli płeć nie jest określona. To podejście zmniejsza błędy tłumaczenia. Globalne podejście, nie tłumacz iteracyjnie słowo po słowie, na przykład: "Święty Tyris przegrał. Ona umarła.", gdzie poprawnie to: "Święta Tyris przegrała. Ona umarła."
-
-Jeśli płeć osoby mówiącej nie jest podana wcześniej, lub nie masz kontekstu, do którego możesz się odnieść, to użyj zdania w stronie BIERNEJ, np. "Zostało zrobione przeze mnie" zamiast "Zrobiłem to", np. "I'm sure..." na "Na pewno..." zamiast błędnego "Jestem pewny/pewna...". W ostateczności możesz użyć formy niebinarnej jejgo w odniesieniu do innej osoby.
+Podejdź globalnie do tekstu. Jeśli gdziekolwiek w tekście podano informacje o płci postaci, użyj tych informacji, aby kierować swoim tłumaczeniem przez cały tekst. Na przykład, zamiast tłumaczyć "I did it" jako "Zrobiłem to" lub "Zrobiłam to", przetłumacz to jako "To zostało zrobione przeze mnie", jeśli płeć nie jest określona. To podejście zmniejsza błędy tłumaczenia. Globalne podejście, nie tłumacz iteracyjnie słowo po słowie, na przykład : "Święty Tyrs przegrał. Ona umarła.", gdzie poprawnie to: "Święta Tyrs przegrała. Ona umarła."
 
 Bądź kreatywny w swoich tłumaczeniach, dostosowując swój ton do kontekstu - bądź dowcipny dla lekkich tekstów i dodaj powagi i profesjonalizmu dla poważnych. Tłumacz wszystkie przekleństwa, nie cenzuruj i nie zmieniaj znaczenia słów, które są ważne w kontekście lub które zmieniają emocjonalny ton tekstu.
 
-Mając znaki ◍◍◍◍, @@ lub '◍◍[num]. nie zmieniaj ich, nie modyfikuj struktury, ani ułożenia tekstu. Nie usuwaj ani nie dodawaj żadnych znaków interpunkcyjnych, ani nie zmieniaj ich położenia. Te znaki to świętość, nie zmieniaj ich. Nie musisz wiedzieć, co one znaczą, ale musisz je zachować, w tym samym miejscu, w którym się znajdują. Nie łącz zdań z 2 napisów w jeden napis - każdy napis musi być oddzielny.
+Mając znaki ◍◍◍◍, @@ lub '◍◍[num]. nie zmieniaj ich, nie modyfikuj struktury, ani ułożenia tekstu. Nie usuwaj ani nie dodawaj żadnych znaków interpunkcyjnych, ani nie zmieniaj ich położenia. Te znaki to świętość, nie zmieniaj ich. Nie musisz wiedzieć co one znaczą, ale musisz je zachować, w tym samym miejscu, w którym się znajdują. Nie łącz zdań z 2 napisów w jeden napis - każdy napis musi być oddzielny.
 
 W tekście symbol '◍◍◍◍' reprezentuje nową linię w tym samym napisie, a symbol '@@' reprezentuje koniec napisu. Nie zmieniaj ilości znaków '@@'. Nie zmieniaj ilości numeracji napisów '◍◍1.', zwracaj taką samą ilość wszystkich tych znaków, jak w oryginalnym tekście.
 
@@ -200,7 +199,7 @@ Twoim ostatecznym celem jest wyprodukowanie tłumaczenia, które jest jak najbar
 
 Zadanie wykonuj powoli krok po kroku
 
-Dodatkowe uwagi odnośnie tłumaczenia / dodatkowe informacje o tłumaczonym tekście: """ + additional_info + "\n\nTeraz przetłumacz poniższe napisy:\n" + text
+Dodatkowe informacje na temat tekstu który ma być tłumaczony: """ + additional_info + "\n\nTeraz przetłumacz poniższe napisy:\n" + text
 
             if translated_subs is not None:
                 translated_text: str = "".join(
@@ -211,25 +210,22 @@ Dodatkowe uwagi odnośnie tłumaczenia / dodatkowe informacje o tłumaczonym tek
                     for i in range((counter - 1) - len(group), counter - 1)
                 )
                 translated_text = translated_text.rstrip(' @@\n')
-                prompt += "\n\nNapisy zostały wstępnie przetłumaczone przez Google Translate. Są one dostarczone w celu rozszerzenia zakresu słownictwa. Proszę nie kopiować ani nie przepisywać tego tłumaczenia wraz z zawartymi w nim formami gramatycznymi i technikami tłumaczeniowymi. Przetłumaczone napisy:\n" + translated_text
+                prompt += "\n\nNapisy wstępnie przetłumaczone przez Google Translate:\n" + translated_text
 
-            pyperclip.copy(prompt)
+            prev_text: str = ""
+            for data in chatbot.ask(
+                prompt,
+            ):
+                prev_text = data["message"]
 
-            self.console.print(
-                "Skopiuj przetłumaczony text do schowka.", style='bold bright_yellow')
-            self.console.print(
-                "[italic bright_green]Naciśnij dowolny klawisz, gdy skończysz tłumaczyć...", end='')
-            input()
-
-            translated_text: str = pyperclip.paste().rstrip(" @@")
+            translated_text: str = prev_text.rstrip(" @@")
             if translated_text:
-                translated_lines: List[str] = translated_text.replace(
-                    '\r\n', '\n').split(" @@\n")
+                translated_lines: List[str] = translated_text.split(" @@\n")
                 for i in range(len(translated_lines)):
-                    translated_lines[i] = translated_lines[i]
+                    translated_lines[i] = translated_lines[i].replace('\n', '')
                 if len(translated_lines) != len(group):
-                    self.console.print(
-                        f"Błąd: liczba napisów po tłumaczeniu ({len(translated_lines)}) nie jest taka sama jak przed tłumaczeniem ({len(group)})", style='bold red')
+                    print(
+                        f"Błąd: liczba napisów po tłumaczeniu ({len(translated_lines)}) nie jest taka sama jak przed tłumaczeniem ({len(group)})")
                 for sub, trans_text in zip(group, translated_lines):
                     trans_text = re.sub(r"◍◍\d+\. ", "", trans_text)
                     trans_text = trans_text.replace(" ◍◍◍◍, ", ",\n")
@@ -257,11 +253,11 @@ Dodatkowe uwagi odnośnie tłumaczenia / dodatkowe informacje o tłumaczonym tek
             'DeepL Desktop Free': lambda *args:
                 SubtitleTranslator.translate_deepl_desktop(*args[:3]),
             'ChatGPT': lambda *args:
-                self.translate_chat_gpt(
+                SubtitleTranslator.translate_chat_gpt(
                     *args[:3], settings.chat_gpt_access_token),
             'ChatGPT + Google Translate': lambda *args:
-                self.translate_google_gpt(
-                    *args[:3], settings.chat_gpt_access_token),
+                SubtitleTranslator.translate_google_gpt(
+                    *args[:3], settings.chat_gpt_access_token)
         }
 
         if translator in translator_functions:

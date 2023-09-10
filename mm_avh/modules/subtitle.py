@@ -58,9 +58,9 @@ class SubtitleRefactor:
 
         self.console.print("PODZIAŁ PLIKU:", style='bold bright_yellow')
         self.console.print(self.filename, style='bold white')
-        self.console.print("Dostępne style do TTS:", style='bold yellow')
+        self.console.print("Dostępne style do TTS:", style='bold bright_yellow')
         for i, style in enumerate(styles, start=1):
-            self.console.print(f"[bold yellow]{i}.[/bold yellow] {style}")
+            self.console.print(f"[bold bright_yellow]{i}.[/bold bright_yellow] {style}")
 
         selected_styles: List[str] = []
         while True:
@@ -117,7 +117,7 @@ class SubtitleRefactor:
             alt_file.write(alt_subs.to_string(format_='ass'))
 
         remove(path.join(self.working_space_temp, self.filename))
-        self.console.print("Usunięto plik źródłowy.\n", style='bold yellow')
+        self.console.print("Usunięto plik źródłowy.\n", style='bold bright_yellow')
         self.console.print(
             "Podział napisów zakończony pomyślnie.\n", style='bold green')
 
@@ -189,11 +189,11 @@ class SubtitleRefactor:
         self.filename = self.filename.replace('.txt', '.srt')
         self.move_srt('main_subs')
 
-    def convert_numbers_in_srt(self) -> None:
+    def convert_numbers_in_srt(self, main_subs_folder: str) -> None:
         """
             Converts numbers in an SRT subtitle file to their word equivalents in Polish.
         """
-        srt_file_path: str = path.join(self.working_space_temp, self.filename)
+        srt_file_path: str = path.join(main_subs_folder, self.filename)
 
         subs = load(srt_file_path, encoding='utf-8')
 
@@ -225,7 +225,7 @@ class SubtitleRefactor:
     #             target_file.write(content)
 
     #     self.console.print("Zamieniono kodowanie na ANSI:",
-    #                        style='bold yellow', end=' ')
+    #                        style='bold bright_yellow', end=' ')
     #     self.console.print(file)
 
 

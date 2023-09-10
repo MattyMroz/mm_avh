@@ -140,7 +140,7 @@ class MkvToolNix:
                            style='bold bright_yellow')
         self.console.print(self.filename, style='bold white')
         self.console.print('ID  TYPE        CODEK                LANG  LANG_IETF  PROPERTIES',
-                           style='bold yellow')
+                           style='bold bright_yellow')
 
         for track in tracks_data:
             self.console.print(

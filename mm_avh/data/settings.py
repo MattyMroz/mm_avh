@@ -1,7 +1,7 @@
 """
     Module settings provides a Config and Settings classes.
-    Config class contains static methods to get the configuration options.
-    Settings class contains methods to change the settings. (Static methods *_*)
+    Config class contains static methods to get the configuration options. (config.py)
+    Settings class contains methods to change the settings. (settings.py)
 
     * Example usage:
     Settings.change_settings_save_to_file('settings.json')
@@ -24,160 +24,11 @@
 """
 
 import json
-import webbrowser
 from dataclasses import dataclass, asdict
-from typing import Optional, Tuple, List, Dict
-from rich.console import Console
-
-console: Console = Console()
-
-
-@dataclass(slots=True)
-class Config:
-    """
-    Config class contains static methods to get the configuration options.
-    """
-
-    @staticmethod
-    def get_translators() -> List[Dict[str, str]]:
-        """
-        Returns a list of available translators.
-
-        Each translator is represented as a dictionary with the following keys:
-        - 'name': The name of the translator.
-        - 'suboptions' (optional): A list of suboptions for the translator.
-
-        Returns:
-            List[Dict[str, str]]: A list of translators.
-        """
-        return [
-            {'name': 'Google Translate'},
-            {'name': 'DeepL API'},
-            {'name': 'DeepL Desktop Free'},
-            {
-                'name': 'ChatGPT',
-                'suboptions': [
-                    {'name': 'ChatGPT + Google Translate'}
-                ],
-            },
-        ]
-
-    @staticmethod
-    def get_translation_options() -> List[Dict[str, str]]:
-        """
-        Returns a list of available translation options.
-
-        Each option is represented as a dictionary with the following key:
-        - 'name': The name of the option.
-
-        Returns:
-            List[Dict[str, str]]: A list of translation options.
-        """
-        return [
-            {'name': '5'},
-            {'name': '10'},
-            {'name': '20'},
-            {'name': '30'},
-            {'name': '40'},
-            {'name': '50'},
-            {'name': '60'},
-            {'name': '70'},
-            {'name': '80'},
-            {'name': '90'},
-            {'name': '100'},
-        ]
-
-    @staticmethod
-    def get_voice_actors() -> List[Dict[str, str]]:
-        """
-        Returns a list of available voice actors for text-to-speech.
-
-        Each voice actor is represented as a dictionary with the following keys:
-        - 'name': The name of the voice actor.
-        - 'description': A dictionary containing the description of the voice actor, including:
-            - 'speed': The speed of the voice actor.
-            - 'volume': The volume of the voice actor.
-        - 'default_options': A dictionary containing the default options for the voice actor, including:
-            - 'default_voice_speed': The default speed of the voice actor.
-            - 'default_voice_volume': The default volume of the voice actor.
-
-        Returns:
-            List[Dict[str, str]]: A list of voice actors.
-        """
-        return [
-            {
-                'name': 'TTS - Zosia - Harpo',
-                'description': {
-                    'speed': 'Szybkość głosu od 0 do ... (słowa na minutę), domyślna: 200',
-                    'volume': 'Głośność głosu od 0 do 1, domyślna: 0.7',
-                },
-                'default_options': {
-                    'default_voice_speed': '200',
-                    'default_voice_volume': '0.7',
-                },
-            },
-            {
-                'name': 'TTS - Agnieszka - Ivona',
-                'description': {
-                    'speed': 'Szybkość głosu od -10 do 10, domyślna: 5',
-                    'volume': 'Głośność głosu od 0 do 100, domyślna: 65',
-                },
-                'default_options': {
-                    'default_voice_speed': '5',
-                    'default_voice_volume': '65',
-                },
-            },
-            {
-                'name': 'TTS - Zofia - Edge',
-                'description': {
-                    'speed': 'Szybkość głosu (+/- ? %) od -100% do +100%, domyślna: +40%',
-                    'volume': 'Głośność głosu (+/- ? %) od -100% do +100%, domyślna: +0%',
-                },
-                'default_options': {
-                    'default_voice_speed': '+40%',
-                    'default_voice_volume': '+0%',
-                },
-            },
-            {
-                'name': 'TTS - Marek - Edge',
-                'description': {
-                    'speed': 'Szybkość głosu (+/- ? %) od -100% do +100%, domyślna: +40%',
-                    'volume': 'Głośność głosu (+/- ? %) od -100% do +100%, domyślna: +0%',
-                },
-                'default_options': {
-                    'default_voice_speed': '+40%',
-                    'default_voice_volume': '+0%',
-                },
-            },
-            {
-                'name': 'TTS - *Głos* - ElevenLans',
-                'description': {
-                    'speed': 'Szybkość głosu: Auto',
-                    'volume': 'Głośność głou: Auto',
-                },
-                'default_options': {
-                    'default_voice_speed': 'auto',
-                    'default_voice_volume': 'auto',
-                },
-            },
-        ]
-
-    @staticmethod
-    def get_output() -> List[Dict[str, str]]:
-        """
-        Returns a list of available output options.
-
-        Each option is represented as a dictionary with the following key:
-        - 'name': The name of the output option.
-
-        Returns:
-            List[Dict[str, str]]: A list of output options.
-        """
-        return [
-            {'name': 'Oglądam w MM_AVH_Players (wynik: napisy i audio)'},
-            {'name': 'Scal do mkv'},
-            {'name': 'Wypal do mp4'},
-        ]
+from typing import Dict, List, Optional, Tuple
+from constants import SETTINGS_PATH, console
+from data.config import Config
+import webbrowser
 
 
 @dataclass(slots=True)
@@ -186,31 +37,31 @@ class Settings:
     A class representing application settings.
 
     Attributes:
-        translator (Optional[str]): The selected translator.
-        deepl_api_key (Optional[str]): The API key for DeepL translation service.
-        chat_gpt_access_token (Optional[str]): The access token for ChatGPT API.
-        translated_line_count (Optional[str]): The number of translated lines.
-        tts (Optional[str]): The selected TTS engine.
-        tts_speed (Optional[str]): The speed of the TTS voice.
-        tts_volume (Optional[str]): The volume of the TTS voice.
-        output (Optional[str]): The selected output option.
+        - translator (Optional[str]): The selected translator.
+        - deepl_api_key (Optional[str]): The API key for DeepL translation service.
+        - chat_gpt_access_token (Optional[str]): The access token for ChatGPT API.
+        - translated_line_count (Optional[str]): The number of translated lines.
+        - tts (Optional[str]): The selected TTS engine.
+        - tts_speed (Optional[str]): The speed of the TTS voice.
+        - tts_volume (Optional[str]): The volume of the TTS voice.
+        - output (Optional[str]): The selected output option.
 
     Methods:
-        load_from_file(cls, filename: str) -> 'Settings': Load settings from a file.
-        set_option(prompt: str, options: List[Dict[str, str]]) -> str | None: Set an option from a list of options.
-        is_valid_speed(speed: str, tts: str) -> bool: Check if a given speed value is valid for the selected TTS engine.
-        is_valid_volume(volume: str, tts: str) -> bool: Check if a given volume value is valid for the selected TTS engine.
-        get_translator(settings: Optional['Settings']) -> Optional[str]: Get the selected translator.
-        get_deepl_api_key(settings: Optional['Settings']) -> Optional[str]: Get the DeepL API key.
-        get_chat_gpt_access_token(settings: Optional['Settings']) -> Optional[str]: Get the ChatGPT access token.
-        get_translated_line_count(settings: Optional['Settings']) -> Optional[str]: Get the number of translated lines.
-        get_tts(settings: Optional['Settings']) -> Optional[str]: Get the selected TTS engine.
-        get_default_speed_volume(tts: str) -> Tuple[Optional[str], Optional[str]]: Get the default speed and volume for a TTS engine.
-        get_tts_speed(tts: str, default_speed: Optional[str]) -> Optional[str]: Get the TTS speed.
-        get_tts_volume(tts: str, default_volume: Optional[str]) -> Optional[str]: Get the TTS volume.
-        get_output(settings: Optional['Settings']) -> Optional[str]: Get the selected output option.
-        get_user_settings(filename: str) -> Optional['Settings']: Get user settings from a file.
-        change_settings_save_to_file(filename: str) -> None: Change and save settings to a file.
+        - load_from_file(cls, settings_path: str) -> 'Settings': Load settings from a file.
+        - set_option(prompt: str, options: List[Dict[str, str]]) -> str | None: Set an option from a list of options.
+        - is_valid_speed(speed: str, tts: str) -> bool: Check if a given speed value is valid for the selected TTS engine.
+        - is_valid_volume(volume: str, tts: str) -> bool: Check if a given volume value is valid for the selected TTS engine.
+        - get_translator(settings: Optional['Settings']) -> Optional[str]: Get the selected translator.
+        - get_deepl_api_key(settings: Optional['Settings']) -> Optional[str]: Get the DeepL API key.
+        - get_chat_gpt_access_token(settings: Optional['Settings']) -> Optional[str]: Get the ChatGPT access token.
+        - get_translated_line_count(settings: Optional['Settings']) -> Optional[str]: Get the number of translated lines.
+        - get_tts(settings: Optional['Settings']) -> Optional[str]: Get the selected TTS engine.
+        - get_default_speed_volume(tts: str) -> Tuple[Optional[str], Optional[str]]: Get the default speed and volume for a TTS engine.
+        - get_tts_speed(tts: str, default_speed: Optional[str]) -> Optional[str]: Get the TTS speed.
+        - get_tts_volume(tts: str, default_volume: Optional[str]) -> Optional[str]: Get the TTS volume.
+        - get_output(settings: Optional['Settings']) -> Optional[str]: Get the selected output option.
+        - get_user_settings(settings_path: str) -> Optional['Settings']: Get user settings from a file.
+        - change_settings_save_to_file(settings_path: str) -> None: Change and save settings to a file.
     """
     translator: Optional[str] = None
     deepl_api_key: Optional[str] = None
@@ -222,19 +73,19 @@ class Settings:
     output: Optional[str] = None
 
     @classmethod
-    def load_from_file(cls, filename: str) -> 'Settings':
+    def load_from_file(cls, settings_path: str = SETTINGS_PATH) -> 'Settings':
         """
         Load settings from a JSON file.
 
         Args:
-            filename (str): The name of the file to load settings from.
+            - settings_path (str): The name of the file to load settings from.
 
         Returns:
-            Settings: An instance of the Settings class with the loaded settings.
+            - Settings: An instance of the Settings class with the loaded settings.
 
         Raises:
-            FileNotFoundError: If the file does not exist.
-            json.decoder.JSONDecodeError: If the file has an invalid JSON format.
+            - FileNotFoundError: If the file does not exist.
+            - json.decoder.JSONDecodeError: If the file has an invalid JSON format.
         """
 
         def get_default_settings():
@@ -250,15 +101,16 @@ class Settings:
             )
 
         try:
-            with open(filename, 'r', encoding='utf-8') as file:
+            with open(settings_path, 'r', encoding='utf-8') as file:
                 data = json.load(file)
         except FileNotFoundError:
-            console.print(f'[bold bright_red]Nie znaleziono pliku {filename}')
+            console.print(
+                f'[bold bright_red]Nie znaleziono pliku {settings_path}')
             return get_default_settings()
 
         except json.decoder.JSONDecodeError:
             console.print(
-                f'[bold bright_red]Niepoprawny format pliku {filename}')
+                f'[bold bright_red]Niepoprawny format pliku {settings_path}')
             return get_default_settings()
 
         return Settings(
@@ -278,14 +130,11 @@ class Settings:
         Set an option from a list of options.
 
         Args:
-            prompt (str): The prompt to display to the user.
-            options (List[Dict[str, str]]): The list of options to choose from.
+            - prompt (str): The prompt to display to the user.
+            - options (List[Dict[str, str]]): The list of options to choose from.
 
         Returns:
-            str | None: The selected option, or None if the selection is invalid.
-
-        Raises:
-            No specific exceptions are raised.
+            - str | None: The selected option, or None if the selection is invalid.
         """
         console.print(f'\n[bold bright_yellow]{prompt}')
         for i, option in enumerate(options):
@@ -322,14 +171,11 @@ class Settings:
         Check if a given speed value is valid for the selected TTS engine.
 
         Args:
-            speed (str): The speed value to check.
-            tts (str): The selected TTS engine.
+            - speed (str): The speed value to check.
+            - tts (str): The selected TTS engine.
 
         Returns:
-            bool: True if the speed value is valid, False otherwise.
-
-        Raises:
-            No specific exceptions are raised.
+            - bool: True if the speed value is valid, False otherwise.
         """
         if tts == 'TTS - Zosia - Harpo':
             return int(speed) >= 0
@@ -346,14 +192,11 @@ class Settings:
         Check if a given volume value is valid for the selected TTS engine.
 
         Args:
-            volume (str): The volume value to check.
-            tts (str): The selected TTS engine.
+            - volume (str): The volume value to check.
+            - tts (str): The selected TTS engine.
 
         Returns:
-            bool: True if the volume value is valid, False otherwise.
-
-        Raises:
-            No specific exceptions are raised.
+            - bool: True if the volume value is valid, False otherwise.
         """
         if tts == 'TTS - Zosia - Harpo':
             return 0 <= float(volume) <= 1
@@ -370,13 +213,11 @@ class Settings:
         Retrieve the selected translator from the user settings or prompt the user to choose one.
 
         Args:
-            settings (Optional['Settings']): The user settings object.
+            - settings (Optional['Settings']): The user settings object.
 
         Returns:
-            Optional[str]: The selected translator or None if not found.
+            - Optional[str]: The selected translator or None if not found.
 
-        Raises:
-            No specific exceptions are raised.
         """
 
         translator = Settings.set_option(
@@ -391,13 +232,10 @@ class Settings:
         Prompt the user to set the DeepL API key or retrieve it from the user settings.
 
         Args:
-            settings (Optional['Settings']): The user settings object.
+            - settings (Optional['Settings']): The user settings object.
 
         Returns:
-            Optional[str]: The DeepL API key or None if not set.
-
-        Raises:
-            No specific exceptions are raised.
+            - Optional[str]: The DeepL API key or None if not set.
         """
 
         console.print(
@@ -422,13 +260,10 @@ class Settings:
         Prompt the user to set the Chat GPT access token or retrieve it from the user settings.
 
         Args:
-            settings (Optional['Settings']): The user settings object.
+            - settings (Optional['Settings']): The user settings object.
 
         Returns:
-            Optional[str]: The Chat GPT access token or None if not set.
-
-        Raises:
-            No specific exceptions are raised.
+            - Optional[str]: The Chat GPT access token or None if not set.
         """
 
         console.print(
@@ -455,13 +290,11 @@ class Settings:
         Prompt the user to set the number of translated lines or retrieve it from the user settings.
 
         Args:
-            settings (Optional['Settings']): The user settings object.
+            - settings (Optional['Settings']): The user settings object.
 
         Returns:
-            Optional[str]: The number of translated lines or None if not set.
+            - Optional[str]: The number of translated lines or None if not set.
 
-        Raises:
-            No specific exceptions are raised.
         """
 
         translated_line_count = Settings.set_option('Wybierz liczbę przetłumaczonych linii: ',
@@ -476,13 +309,11 @@ class Settings:
         Prompt the user to choose a TTS engine or retrieve it from the user settings.
 
         Args:
-            settings (Optional['Settings']): The user settings object.
+            - settings (Optional['Settings']): The user settings object.
 
         Returns:
-            Optional[str]: The selected TTS engine or None if not set.
+            - Optional[str]: The selected TTS engine or None if not set.
 
-        Raises:
-            No specific exceptions are raised.
         """
 
         tts = Settings.set_option(
@@ -497,14 +328,11 @@ class Settings:
         Retrieve the default voice speed and volume for the specified TTS engine.
 
         Args:
-            tts (str): The selected TTS engine.
+            - tts (str): The selected TTS engine.
 
         Returns:
-            Tuple[Optional[str], Optional[str]]: A tuple containing the default voice speed and volume,
+            - Tuple[Optional[str], Optional[str]]: A tuple containing the default voice speed and volume,
                 or (None, None) if not found.
-
-        Raises:
-            No specific exceptions are raised.
         """
 
         default_speed = None
@@ -522,14 +350,11 @@ class Settings:
         Prompt the user to enter the voice speed for the selected TTS engine, or use the default speed.
 
         Args:
-            tts (str): The selected TTS engine.
-            default_speed (Optional[str]): The default voice speed for the TTS engine.
+            - tts (str): The selected TTS engine.
+            - default_speed (Optional[str]): The default voice speed for the TTS engine.
 
         Returns:
-            Optional[str]: The selected voice speed or the default speed if not set.
-
-        Raises:
-            No specific exceptions are raised.
+            - Optional[str]: The selected voice speed or the default speed if not set.
         """
 
         console.print('[bold bright_green]Wpisz szybkość głosu: ', end='')
@@ -549,14 +374,11 @@ class Settings:
         Prompt the user to enter the voice volume for the selected TTS engine, or use the default volume.
 
         Args:
-            tts (str): The selected TTS engine.
-            default_volume (Optional[str]): The default voice volume for the TTS engine.
+            - tts (str): The selected TTS engine.
+            - default_volume (Optional[str]): The default voice volume for the TTS engine.
 
         Returns:
-            Optional[str]: The selected voice volume or the default volume if not set.
-
-        Raises:
-            No specific exceptions are raised.
+            - Optional[str]: The selected voice volume or the default volume if not set.
         """
 
         console.print('[bold bright_green]Wpisz głośność głosu: ', end='')
@@ -576,13 +398,10 @@ class Settings:
         Prompt the user to choose an output option or retrieve it from the user settings.
 
         Args:
-            settings (Optional['Settings']): The user settings object.
+            - settings (Optional['Settings']): The user settings object.
 
         Returns:
-            Optional[str]: The selected output option or None if not set.
-
-        Raises:
-            No specific exceptions are raised.
+            - Optional[str]: The selected output option or None if not set.
         """
 
         output = Settings.set_option('Wybierz wyjście: ', Config.get_output())
@@ -591,21 +410,18 @@ class Settings:
         return output
 
     @staticmethod
-    def get_user_settings(filename: str) -> Optional['Settings']:
+    def get_user_settings(settings_path: str = SETTINGS_PATH) -> Optional['Settings']:
         """
         Get the user settings from a file or prompt the user to enter them.
 
         Args:
-            filename (str): The name of the settings file.
+            - settings_path (str): The name of the settings file.
 
         Returns:
-            Optional['Settings']: The user settings object or None if not found.
-
-        Raises:
-            No specific exceptions are raised.
+            - Optional['Settings']: The user settings object or None if not found.
         """
 
-        settings = Settings.load_from_file(filename)
+        settings = Settings.load_from_file(settings_path)
 
         translator = Settings.get_translator(settings)
         deepl_api_key = Settings.get_deepl_api_key(settings)
@@ -630,21 +446,18 @@ class Settings:
         )
 
     @staticmethod
-    def change_settings_save_to_file(filename: str) -> None:
+    def change_settings_save_to_file(settings_path: str = SETTINGS_PATH) -> None:
         """
         Prompt the user to change the settings and save them to a file.
 
         Args:
-            filename (str): The name of the settings file.
+            - settings_path (str): The name of the settings file.
 
         Returns:
-            None
-
-        Raises:
-            No specific exceptions are raised.
+            - None
         """
 
-        settings = Settings.get_user_settings(filename)
+        settings = Settings.get_user_settings(settings_path)
 
-        with open(filename, 'w', encoding='utf-8') as file:
+        with open(settings_path, 'w', encoding='utf-8') as file:
             json.dump(asdict(settings), file, indent=4)
