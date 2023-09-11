@@ -6,44 +6,44 @@
     -*- coding: utf-8 -*-
 
     * Example: First, create an instance of the `NumberInWords` class:
-    number_in_words = NumberInWords()
+        number_in_words = NumberInWords()
 
     * Example usage of function `_number_in_words_3digits`:
-    print(number_in_words._number_in_words_3digits(123))
-        Outputs: "sto dwadzieścia trzy"
+        print(number_in_words._number_in_words_3digits(123))
+            Outputs: "sto dwadzieścia trzy"
 
     * Example usage of function `_case`:
-    print(number_in_words._case(1))     # Outputs: 0
-    print(number_in_words._case(12))    # Outputs: 2
-    print(number_in_words._case(23))    # Outputs: 1
+        print(number_in_words._case(1))     # Outputs: 0
+        print(number_in_words._case(12))    # Outputs: 2
+        print(number_in_words._case(23))    # Outputs: 1
 
     * Example usage of function `number_in_words`:
-        Inputs: int, float, str (string works with long (30 digits, 15 on both sides) floating point numbers)
-    print('Int: 123456789012345 =', number_in_words.number_in_words(123_456_789_012_345))
-    print('Float: 0.123456789012345 =',
-        number_in_words.number_in_words(0.123_456_789_012_345))
-    print('String: 123456789012345.123456789012345 =',
-        number_in_words.number_in_words('123_456_789_012_345.123_456_789_012_345'))
-    print('String: 123456789012345,123456789012345 =',
-        number_in_words.number_in_words('123_456_789_012_345,123_456_789_012_345'))
+    Inputs: int, float, str (string works with long (30 digits, 15 on both sides) floating point numbers)
+        print('Int: 123456789012345 =', number_in_words.number_in_words(123_456_789_012_345))
+        print('Float: 0.123456789012345 =',
+            number_in_words.number_in_words(0.123_456_789_012_345))
+        print('String: 123456789012345.123456789012345 =',
+            number_in_words.number_in_words('123_456_789_012_345.123_456_789_012_345'))
+        print('String: 123456789012345,123456789012345 =',
+            number_in_words.number_in_words('123_456_789_012_345,123_456_789_012_345'))
 
     * Example usage of function `thing_in_words`:
-    print(number_in_words.thing_in_words(5, ["jabłko", "jabłka", "jabłek"]))
-        Outputs: "pięć jabłek"
+        print(number_in_words.thing_in_words(5, ["jabłko", "jabłka", "jabłek"]))
+            Outputs: "pięć jabłek"
 
-    print(number_in_words.thing_in_words(21, ["jabłko", "jabłka", "jabłek"]))
-        Outputs: "dwadzieścia jeden jabłek"
+        print(number_in_words.thing_in_words(21, ["jabłko", "jabłka", "jabłek"]))
+            Outputs: "dwadzieścia jeden jabłek"
 
     * Example usage of function `amount_in_words`:
-    print(number_in_words.amount_in_words(1234.56))
-        Outputs: "jeden tysiąc dwieście trzydzieści cztery złote 56/100"
+        print(number_in_words.amount_in_words(1234.56))
+            Outputs: "jeden tysiąc dwieście trzydzieści cztery złote 56/100"
 
-    print(number_in_words.amount_in_words(567.89, fmt=1))
-        Outputs: "pięćset sześćdziesiąt siedem złotych osiemdziesiąt dziewięć groszy"
+        print(number_in_words.amount_in_words(567.89, fmt=1))
+            Outputs: "pięćset sześćdziesiąt siedem złotych osiemdziesiąt dziewięć groszy"
 
     * Example usage of function `convert_numbers_in_text`:
-    print(number_in_words.convert_numbers_in_text('Rozdział 69.2_3 / 4 (test96).'))
-        Outputs: "Rozdział sześćdziesiąt dziewięć przecinek dwa_trzy / cztery (test dziewięćdziesiąt sześć)."
+        print(number_in_words.convert_numbers_in_text('Rozdział 69.2_3 / 4 (test96).'))
+            Outputs: "Rozdział sześćdziesiąt dziewięć przecinek dwa_trzy / cztery (test dziewięćdziesiąt sześć)."
 """
 
 from dataclasses import dataclass, field
@@ -130,7 +130,7 @@ class NumberInWords:
 
     def number_in_words(self, number: Union[int, float, str]) -> str:
         """
-        This method converts a number (including decimal numbers) into words in Polish.
+            This method converts a number (including decimal numbers) into words in Polish.
         """
         if isinstance(number, (int, float)):
             number = str(number)
@@ -181,8 +181,9 @@ class NumberInWords:
 
             In words "how many things"
 
-            number - int
-            thing - array of cases [coś, cosie, cosiów]
+            Args:
+                - number - int
+                - thing - array of cases [coś, cosie, cosiów]
 
         """
         return self.number_in_words(number) + u(" ") + thing[self._case(number)]
@@ -193,8 +194,9 @@ class NumberInWords:
 
             In words zlotys, groszes.
 
-            number - float, number of zlotys with groszes after the comma
-            fmt - (format) if 0, then groszes in the form xx/100, in words in p. case
+            Args:
+                - number - float, number of zlotys with groszes after the comma
+                - fmt - (format) if 0, then groszes in the form xx/100, in words in p. case
         """
         lzlotys: int = int(number)
         lgroszes: int = int(number * 100 + 0.5) % 100
@@ -206,7 +208,7 @@ class NumberInWords:
 
     def convert_numbers_in_text(self, text: str) -> str:
         """
-        This method converts numbers in a text into words in Polish. Yes is not perfect, but it works in most cases. If you want grammatical correctness use AI.
+            This method converts numbers in a text into words in Polish. Yes is not perfect, but it works in most cases. If you want grammatical correctness use AI.
         """
         result: str = ''
         number: str = ''

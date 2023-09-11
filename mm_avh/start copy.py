@@ -40,7 +40,7 @@ def main():
         '╚═══ Multimedia Magic – Audio Visual Heaven ═══╝\n', style='bold white')
 
     console.print('Czy chcesz zmienić ustawienia? (T lub Y - tak):',
-                  style='bright_green_bold', end=' ')
+                  style='green_bold', end=' ')
     if input().lower() in ('t', 'y'):
         Settings.change_settings_save_to_file('./data/settings.json')
         console.print('Zapisano ustawienia.\n', style='bold green')

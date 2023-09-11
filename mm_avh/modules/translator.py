@@ -1,3 +1,32 @@
+"""
+    The SubtitleTranslator class is this module is used for translating subtitles from one language to another.
+        TThe target language is Polish in methods throughout the class
+
+    * Example: Frist create an instance of the SubtitleTranslator class:
+        subtitle_tool = SubtitleTranslator()
+
+    * Example usage for translating subtitles using Google Translate:
+        subtitle_tool.translate_google("sample_subtitle.srt", "/path/to/directory", 100)
+
+    * Example usage for translating subtitles using the DeepL API:
+        subtitle_tool.translate_deepl_api("sample_subtitle.srt", "/path/to/directory", 100, "your_deepl_api_key")
+
+    * Example usage for translating subtitles using the desktop version of DeepL:
+        subtitle_tool.translate_deepl_desktop("sample_subtitle.srt", "/path/to/directory", 100)
+
+    * Example usage for translating subtitles using Google Translate and ChatGPT:
+        subtitle_tool.translate_google_gpt("sample_subtitle.srt", "/path/to/directory", 100, "your_chat_gpt_access_token")
+
+    * Example usage for translating subtitles using ChatGPT:
+        subtitle_tool.translate_chat_gpt("sample_subtitle.srt", "/path/to/directory", 100, "your_chat_gpt_access_token")
+
+    * Example usage for selecting the appropriate translation method based on the settings and translating the subtitles:
+        Settings.change_settings_save_to_file()
+        settings = Settings.load_from_file() | (Settings(translator="Google Translate", translated_line_count="100"))
+        subtitle_tool.translate_srt("sample_subtitle.srt", "/path/to/directory", settings)
+"""
+
+
 from dataclasses import dataclass
 from typing import Optional, List
 import os
@@ -8,24 +37,55 @@ import pyautogui
 import pyperclip
 import time
 import subprocess
-from rich.theme import Theme
-from rich.console import Console
 from data.settings import Settings
 from revChatGPT.V1 import Chatbot
 import re
-from msvcrt import getch
+from constants import console
 
 
 @dataclass(slots=True)
 class SubtitleTranslator:
-    translator: Optional[str] = None
-    deepl_api_key: Optional[str] = None
-    translated_line_count: Optional[str] = None
+    """
+        The SubtitleTranslator class is used for translating subtitles from one language to another.
 
-    console: Console = Console(theme=Theme({"repr.number": "bold red"}))
+        Attributes:
+            None
+
+        Methods:
+            - translate_google(filename: str, dir_path: str, translated_line_count: int, is_combined_with_gpt: bool = False) -> pysrt.SubRipFile:
+                Translates subtitles using Google Translate.
+
+            - translate_deepl_api(filename: str, dir_path: str, translated_line_count: int, deepl_api_key: str) -> None:
+                Translates subtitles using the DeepL API.
+
+            - translate_deepl_desktop(filename: str, dir_path: str, translated_line_count: int) -> None:
+                Translates subtitles using the desktop version of DeepL.
+
+            - translate_google_gpt(filename: str, dir_path: str, translated_line_count: int, chat_gpt_access_token: str) -> None:
+                Translates subtitles using Google Translate and ChatGPT.
+
+            - translate_chat_gpt(filename: str, dir_path: str, translated_line_count: int, chat_gpt_access_token: str, translated_subs: Optional[pysrt.SubRipFile] = None) -> None:
+                Translates subtitles using ChatGPT.
+
+            - translate_srt(filename: str, dir_path: str, settings: Settings) -> None:
+                Selects the appropriate translation method based on the settings and translates the subtitles.
+    """
 
     @staticmethod
     def translate_google(filename: str, dir_path: str, translated_line_count: int, is_combined_with_gpt: bool = False) -> pysrt.SubRipFile:
+        """
+            Translates subtitles using Google Translate.
+
+            Args:
+                - filename (str): The name of the subtitle file.
+                - dir_path (str): The directory path of the subtitle file.
+                - translated_line_count (int): The number of lines to translate at a time.
+                - is_combined_with_gpt (bool, optional): Whether to combine with GPT for translation. Defaults to False.
+
+            Returns:
+                - pysrt.SubRipFile: The translated subtitle file.
+        """
+        print(filename, dir_path, translated_line_count)
         subs: pysrt.SubRipFile = pysrt.open(
             os.path.join(dir_path, filename), encoding='utf-8')
         subs_combined: List[str] = []
@@ -58,7 +118,16 @@ class SubtitleTranslator:
             subs.save(os.path.join(dir_path, filename))
 
     @staticmethod
-    def translate_deepl_api(filename: str, dir_path: str, translated_line_count: int, deepl_api_key: str):
+    def translate_deepl_api(filename: str, dir_path: str, translated_line_count: int, deepl_api_key: str) -> None:
+        """
+            Translates subtitles using the DeepL API.
+
+            Args:
+                - filename (str): The name of the subtitle file.
+                - dir_path (str): The directory path of the subtitle file.
+                - translated_line_count (int): The number of lines to translate at a time.
+                - deepl_api_key (str): The API key for the DeepL translator.
+        """
         subs: pysrt.SubRipFile = pysrt.open(
             os.path.join(dir_path, filename), encoding='utf-8')
         translator: deepl.Translator = deepl.Translator(deepl_api_key)
@@ -80,7 +149,15 @@ class SubtitleTranslator:
         subs.save(os.path.join(dir_path, filename), encoding='utf-8')
 
     @staticmethod
-    def translate_deepl_desktop(filename: str, dir_path: str, translated_line_count: int):
+    def translate_deepl_desktop(filename: str, dir_path: str, translated_line_count: int) -> None:
+        """
+            Translates subtitles using the desktop version of DeepL.
+
+            Args:
+                - filename (str): The name of the subtitle file.
+                - dir_path (str): The directory path of the subtitle file.
+                - translated_line_count (int): The number of lines to translate at a time.
+        """
         command: str = os.path.join(
             os.environ['APPDATA'], 'Programs', 'Zero Install', '0install-win.exe')
         args: List[str] = ["run", "--no-wait",
@@ -141,7 +218,16 @@ class SubtitleTranslator:
         with open(os.path.join(dir_path, filename), 'w', encoding='utf-8') as out_file:
             out_file.write(text)
 
-    def translate_google_gpt(self, filename: str, dir_path: str, translated_line_count: int, chat_gpt_access_token: str):
+    def translate_google_gpt(self, filename: str, dir_path: str, translated_line_count: int, chat_gpt_access_token: str) -> None:
+        """
+            Translates subtitles using Google Translate and ChatGPT.
+
+            Args:
+                - filename (str): The name of the subtitle file.
+                - dir_path (str): The directory path of the subtitle file.
+                - translated_line_count (int): The number of lines to translate at a time.
+                - chat_gpt_access_token (str): The access token for ChatGPT.
+        """
         translated_subs: pysrt.SubRipFile = SubtitleTranslator.translate_google(
             filename, dir_path, translated_line_count, is_combined_with_gpt=True)
         self.translate_chat_gpt(
@@ -150,6 +236,16 @@ class SubtitleTranslator:
             '.srt', '_translated_temp.srt')))
 
     def translate_chat_gpt(self, filename: str, dir_path: str, translated_line_count: int, chat_gpt_access_token: str, translated_subs: Optional[pysrt.SubRipFile] = None):
+        """
+            Translates subtitles using ChatGPT. (NOT API ? NOT ACCESS TOKEN - if chatGPT Online = 4 YES)
+
+            Args:
+                - filename (str): The name of the subtitle file.
+                - dir_path (str): The directory path of the subtitle file.
+                - translated_line_count (int): The number of lines to translate at a time.
+                - chat_gpt_access_token (str): The access token for ChatGPT.
+                - translated_subs (Optional[pysrt.SubRipFile], optional): The translated subtitles. Defaults to None.
+        """
         subs: pysrt.SubRipFile = pysrt.open(
             os.path.join(dir_path, filename), encoding='utf-8')
         groups: List[List[pysrt.SubRipItem]] = [subs[i:i+translated_line_count]
@@ -157,8 +253,8 @@ class SubtitleTranslator:
 
         additional_info: str = ""
         while True:
-            self.console.print(
-                "Uwagi odnośnie tłumaczenia / dodatkowe informacje o tłumaczonym tekście (opcjonalnie): ", style='bold green')
+            console.print(
+                "Uwagi odnośnie tłumaczenia / dodatkowe informacje o tłumaczonym tekście (opcjonalnie): ", style='green_bold')
             info: str = input(">>> ")
             if not info:
                 break
@@ -173,7 +269,7 @@ class SubtitleTranslator:
                 counter += 1
             text = text.rstrip(' @@\n')
 
-            # Dla programistycznej wygody zapisu znaku ◍ jego odczytywaniu promt w kodzie
+            # For programming convenience, writing the ◍ character and reading it promt in the code
             prompt: str = """WAŻNE: JEŚLI OTRZYMASZ NAPISY OD 1 DO 30, ZWRÓĆ NAPISY OD 1 DO 30, NAWET JEŚLI TŁUMACZENIE JEST NIEODPOWIEDNIE, NIESPÓJNE LUB ZŁE. NIEKOMPLETNE TŁUMACZENIE JEST LEPSZE NIŻ BRAK TŁUMACZENIA.
 
 Jesteś moim tłumaczem, specjalizującym się w przekładach na język polski. Twoja rola nie ogranicza się do prostego tłumaczenia - jesteś również redaktorem i ulepszaczem języka. Komunikuję się z Tobą w różnych językach, a Twoim zadaniem jest identyfikowanie języka, tłumaczenie go i odpowiadanie poprawioną i ulepszoną wersją mojego tekstu, w języku polskim.
@@ -215,9 +311,9 @@ Dodatkowe uwagi odnośnie tłumaczenia / dodatkowe informacje o tłumaczonym tek
 
             pyperclip.copy(prompt)
 
-            self.console.print(
+            console.print(
                 "Skopiuj przetłumaczony text do schowka.", style='bold bright_yellow')
-            self.console.print(
+            console.print(
                 "[italic bright_green]Naciśnij dowolny klawisz, gdy skończysz tłumaczyć...", end='')
             input()
 
@@ -228,8 +324,8 @@ Dodatkowe uwagi odnośnie tłumaczenia / dodatkowe informacje o tłumaczonym tek
                 for i in range(len(translated_lines)):
                     translated_lines[i] = translated_lines[i]
                 if len(translated_lines) != len(group):
-                    self.console.print(
-                        f"Błąd: liczba napisów po tłumaczeniu ({len(translated_lines)}) nie jest taka sama jak przed tłumaczeniem ({len(group)})", style='bold red')
+                    console.print(
+                        f"Błąd: liczba napisów po tłumaczeniu ({len(translated_lines)}) nie jest taka sama jak przed tłumaczeniem ({len(group)})", style='red_bold')
                 for sub, trans_text in zip(group, translated_lines):
                     trans_text = re.sub(r"◍◍\d+\. ", "", trans_text)
                     trans_text = trans_text.replace(" ◍◍◍◍, ", ",\n")
@@ -239,14 +335,22 @@ Dodatkowe uwagi odnośnie tłumaczenia / dodatkowe informacje o tłumaczonym tek
 
         subs.save(os.path.join(dir_path, filename), encoding='utf-8')
 
-    def translate_srt(self,  filename: str, dir_path: str, settings: Settings):
+    def translate_srt(self,  filename: str, dir_path: str, settings: Settings) -> None:
+        """
+            Selects the appropriate translation method based on the settings and translates the subtitles.
+
+            Args:
+                - filename (str): The name of the subtitle file.
+                - dir_path (str): The directory path of the subtitle file.
+                - settings (Settings): The settings for the translation.
+        """
         translator: str = settings.translator
         translated_line_count: int = int(settings.translated_line_count)
         deepl_api_key: str = settings.deepl_api_key
 
-        self.console.print(f"Tłumaczenie napisów za pomocą {translator}...",
-                           style='bold green')
-        self.console.print(os.path.join(dir_path, filename))
+        console.print(f"Tłumaczenie napisów za pomocą {translator}...",
+                      style='green_bold')
+        console.print(os.path.join(dir_path, filename))
 
         translator_functions = {
             'Google Translate': lambda *args:
@@ -268,5 +372,5 @@ Dodatkowe uwagi odnośnie tłumaczenia / dodatkowe informacje o tłumaczonym tek
             translator_functions[translator](
                 filename, dir_path, translated_line_count)
         else:
-            self.console.print(
-                f"Nieznany translator: {translator}", style='bold red')
+            console.print(
+                f"Nieznany translator: {translator}", style='red_bold')
