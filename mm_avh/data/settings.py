@@ -26,8 +26,7 @@
         }
 """
 
-
-import json
+from json import load, decoder, dump
 from dataclasses import dataclass, asdict
 from typing import Dict, List, Optional, Tuple
 from constants import SETTINGS_PATH, console
@@ -89,7 +88,7 @@ class Settings:
 
             Raises:
                 - FileNotFoundError: If the file does not exist.
-                - json.decoder.JSONDecodeError: If the file has an invalid JSON format.
+                - decoder.JSONDecodeError: If the file has an invalid JSON format.
         """
 
         def get_default_settings():
@@ -106,7 +105,7 @@ class Settings:
 
         try:
             with open(settings_path, 'r', encoding='utf-8') as file:
-                data = json.load(file)
+                data = load(file)
         except FileNotFoundError:
             console.print(
                 f'Nie znaleziono pliku {settings_path}', style='red_bold')
@@ -114,7 +113,7 @@ class Settings:
                           style='red_bold')
             return get_default_settings()
 
-        except json.decoder.JSONDecodeError:
+        except decoder.JSONDecodeError:
             console.print(
                 f'Niepoprawny format pliku {settings_path}', style='red_bold')
             return get_default_settings()
@@ -472,4 +471,4 @@ class Settings:
         settings = Settings.get_user_settings(settings_path)
 
         with open(settings_path, 'w', encoding='utf-8') as file:
-            json.dump(asdict(settings), file, indent=4)
+            dump(asdict(settings), file, indent=4)

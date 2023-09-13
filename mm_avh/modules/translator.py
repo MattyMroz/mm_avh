@@ -26,21 +26,23 @@
         subtitle_tool.translate_srt("sample_subtitle.srt", "/path/to/directory", settings)
 """
 
-
+import re
 from dataclasses import dataclass
-from typing import Optional, List
-import os
-import pysrt
-from googletrans import Translator
+from os import environ, path, remove
+from subprocess import call
+from time import sleep
+from typing import List, Optional
+
 import deepl
 import pyautogui
 import pyperclip
-import time
-import subprocess
-from data.settings import Settings
-from revChatGPT.V1 import Chatbot
-import re
+import pysrt
+
 from constants import console
+from googletrans import Translator
+from revChatGPT.V1 import Chatbot
+
+from data.settings import Settings
 
 
 @dataclass(slots=True)
@@ -85,9 +87,8 @@ class SubtitleTranslator:
             Returns:
                 - pysrt.SubRipFile: The translated subtitle file.
         """
-        print(filename, dir_path, translated_line_count)
         subs: pysrt.SubRipFile = pysrt.open(
-            os.path.join(dir_path, filename), encoding='utf-8')
+            path.join(dir_path, filename), encoding='utf-8')
         subs_combined: List[str] = []
         translated_subs: List[str] = []
 
@@ -112,10 +113,10 @@ class SubtitleTranslator:
         if is_combined_with_gpt:
             translated_filename: str = filename.replace(
                 '.srt', '_translated_temp.srt')
-            subs.save(os.path.join(dir_path, translated_filename))
+            subs.save(path.join(dir_path, translated_filename))
             return subs
         else:
-            subs.save(os.path.join(dir_path, filename))
+            subs.save(path.join(dir_path, filename))
 
     @staticmethod
     def translate_deepl_api(filename: str, dir_path: str, translated_line_count: int, deepl_api_key: str) -> None:
@@ -129,7 +130,7 @@ class SubtitleTranslator:
                 - deepl_api_key (str): The API key for the DeepL translator.
         """
         subs: pysrt.SubRipFile = pysrt.open(
-            os.path.join(dir_path, filename), encoding='utf-8')
+            path.join(dir_path, filename), encoding='utf-8')
         translator: deepl.Translator = deepl.Translator(deepl_api_key)
         groups: List[List[pysrt.SubRipItem]] = [subs[i:i+translated_line_count]
                                                 for i in range(0, len(subs), translated_line_count)]
@@ -146,7 +147,7 @@ class SubtitleTranslator:
                         group[i].text = group[i].text.replace(" ◍◍◍◍, ", ",\n")
                         group[i].text = group[i].text.replace(" ◍◍◍◍ ", "\n")
                         group[i].text = group[i].text.replace(" ◍◍◍◍", "")
-        subs.save(os.path.join(dir_path, filename), encoding='utf-8')
+        subs.save(path.join(dir_path, filename), encoding='utf-8')
 
     @staticmethod
     def translate_deepl_desktop(filename: str, dir_path: str, translated_line_count: int) -> None:
@@ -158,13 +159,13 @@ class SubtitleTranslator:
                 - dir_path (str): The directory path of the subtitle file.
                 - translated_line_count (int): The number of lines to translate at a time.
         """
-        command: str = os.path.join(
-            os.environ['APPDATA'], 'Programs', 'Zero Install', '0install-win.exe')
+        command: str = path.join(
+            environ['APPDATA'], 'Programs', 'Zero Install', '0install-win.exe')
         args: List[str] = ["run", "--no-wait",
                            "https://appdownload.deepl.com/windows/0install/deepl.xml"]
-        subprocess.call([command] + args)
+        call([command] + args)
 
-        time.sleep(7)
+        sleep(7)
 
         def auto_steps():
             screen_width, screen_height = pyautogui.size()
@@ -175,7 +176,7 @@ class SubtitleTranslator:
             pyautogui.hotkey('ctrl', 'a')
             pyautogui.hotkey('del')
             pyautogui.hotkey('ctrl', 'v')
-            time.sleep(6)
+            sleep(6)
             x = screen_width * 0.75
             pyautogui.moveTo(x, y)
             pyautogui.click()
@@ -183,7 +184,7 @@ class SubtitleTranslator:
             pyautogui.hotkey('ctrl', 'c')
 
         subs: pysrt.SubRipFile = pysrt.open(
-            os.path.join(dir_path, filename), encoding='utf-8')
+            path.join(dir_path, filename), encoding='utf-8')
         groups: List[List[pysrt.SubRipItem]] = [subs[i:i+translated_line_count]
                                                 for i in range(0, len(subs), translated_line_count)]
 
@@ -202,20 +203,20 @@ class SubtitleTranslator:
                     sub.text = trans_text.replace(" ◍◍◍◍", "")
         pyautogui.hotkey('alt', 'f4')
 
-        subs.save(os.path.join(dir_path, filename), encoding='utf-8')
+        subs.save(path.join(dir_path, filename), encoding='utf-8')
 
         frezes: List[str] = ["\nPrzetłumaczono z www.DeepL.com/Translator (wersja darmowa)\n",
                              "Przetłumaczono z www.DeepL.com/Translator (wersja darmowa)",
                              "\nTranslated with www.DeepL.com/Translator (free version)\n",
                              "\nTranslated with www.DeepL.com/Translator (free version)"]
 
-        with open(os.path.join(dir_path, filename), 'r', encoding='utf-8') as in_file:
+        with open(path.join(dir_path, filename), 'r', encoding='utf-8') as in_file:
             text: str = in_file.read()
 
         for freze in frezes:
             text = text.replace(freze, "")
 
-        with open(os.path.join(dir_path, filename), 'w', encoding='utf-8') as out_file:
+        with open(path.join(dir_path, filename), 'w', encoding='utf-8') as out_file:
             out_file.write(text)
 
     def translate_google_gpt(self, filename: str, dir_path: str, translated_line_count: int, chat_gpt_access_token: str) -> None:
@@ -232,7 +233,7 @@ class SubtitleTranslator:
             filename, dir_path, translated_line_count, is_combined_with_gpt=True)
         self.translate_chat_gpt(
             filename, dir_path, translated_line_count, chat_gpt_access_token, translated_subs)
-        os.remove(os.path.join(dir_path, filename.replace(
+        remove(path.join(dir_path, filename.replace(
             '.srt', '_translated_temp.srt')))
 
     def translate_chat_gpt(self, filename: str, dir_path: str, translated_line_count: int, chat_gpt_access_token: str, translated_subs: Optional[pysrt.SubRipFile] = None):
@@ -247,7 +248,7 @@ class SubtitleTranslator:
                 - translated_subs (Optional[pysrt.SubRipFile], optional): The translated subtitles. Defaults to None.
         """
         subs: pysrt.SubRipFile = pysrt.open(
-            os.path.join(dir_path, filename), encoding='utf-8')
+            path.join(dir_path, filename), encoding='utf-8')
         groups: List[List[pysrt.SubRipItem]] = [subs[i:i+translated_line_count]
                                                 for i in range(0, len(subs), translated_line_count)]
 
@@ -274,7 +275,7 @@ class SubtitleTranslator:
 
 Jesteś moim tłumaczem, specjalizującym się w przekładach na język polski. Twoja rola nie ogranicza się do prostego tłumaczenia - jesteś również redaktorem i ulepszaczem języka. Komunikuję się z Tobą w różnych językach, a Twoim zadaniem jest identyfikowanie języka, tłumaczenie go i odpowiadanie poprawioną i ulepszoną wersją mojego tekstu, w języku polskim.
 
-Przed przystąpieniem do tłumaczenia, poświęć chwilę na zrozumienie gramatycznych, językowych i kontekstualnych niuansów tekstu. Uchwyć subtelności i upewnij się, że tekst płynie jak strumień słów, jakby ktoś nam opowiadał historię, czytał audiobooka, czy narrację filmu, bo ostatecznie ten tekst będzie czytany na głos.
+Przed przystąpieniem do tłumaczenia, poświęć chwilę na zrozumienie gramatycznych, językowych i kontekstualnych niuansów tekstu. Uchwyć subtelności i upewnij się, że tekst płynie jak strumień słów, jakby ktoś nam opowiadał historię, czytał audiobooka, czy narrację filmu, bo ostatecznie ten tekst będzie czytany na gł
 
 Twoim zadaniem jest podniesienie poziomu mojego języka, zastępując uproszczone słowa i zdania na poziomie C0 bardziej wyszukanymi i eleganckimi wyrażeniami. Zachowaj oryginalne znaczenie, ale uczyń język bardziej literackim. Twoje odpowiedzi powinny ograniczać się do poprawionego i ulepszonego tłumaczenia, bez dodatkowych wyjaśnień.
 
@@ -312,9 +313,9 @@ Dodatkowe uwagi odnośnie tłumaczenia / dodatkowe informacje o tłumaczonym tek
             pyperclip.copy(prompt)
 
             console.print(
-                "Skopiuj przetłumaczony text do schowka.", style='bold bright_yellow')
+                "Skopiuj przetłumaczony text do schowka.", style='yellow_bold')
             console.print(
-                "[italic bright_green]Naciśnij dowolny klawisz, gdy skończysz tłumaczyć...", end='')
+                "[green_italic]Naciśnij dowolny klawisz, gdy skończysz tłumaczyć...", end='')
             input()
 
             translated_text: str = pyperclip.paste().rstrip(" @@")
@@ -333,7 +334,7 @@ Dodatkowe uwagi odnośnie tłumaczenia / dodatkowe informacje o tłumaczonym tek
                     trans_text = trans_text.replace(" ◍◍◍◍", "")
                     sub.text = trans_text
 
-        subs.save(os.path.join(dir_path, filename), encoding='utf-8')
+        subs.save(path.join(dir_path, filename), encoding='utf-8')
 
     def translate_srt(self,  filename: str, dir_path: str, settings: Settings) -> None:
         """
@@ -348,9 +349,9 @@ Dodatkowe uwagi odnośnie tłumaczenia / dodatkowe informacje o tłumaczonym tek
         translated_line_count: int = int(settings.translated_line_count)
         deepl_api_key: str = settings.deepl_api_key
 
-        console.print(f"Tłumaczenie napisów za pomocą {translator}...",
-                      style='green_bold')
-        console.print(os.path.join(dir_path, filename))
+        console.print(
+            f"[green_italic]Tłumaczenie napisów za pomocą {translator}...")
+        console.print(path.join(dir_path, filename), '\n', style='white_bold')
 
         translator_functions = {
             'Google Translate': lambda *args:

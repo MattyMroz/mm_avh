@@ -46,10 +46,10 @@
             Outputs: "Rozdział sześćdziesiąt dziewięć przecinek dwa_trzy / cztery (test dziewięćdziesiąt sześć)."
 """
 
-from dataclasses import dataclass, field
-from six import u
 import re
+from six import u
 from typing import List, Union
+from dataclasses import dataclass, field
 
 
 @dataclass

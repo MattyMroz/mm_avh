@@ -1,6 +1,5 @@
 from os import getcwd, pardir, path
 from rich.console import Console
-from rich.style import Style
 from rich.theme import Theme
 
 # Path for settings

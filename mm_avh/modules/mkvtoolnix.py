@@ -15,12 +15,14 @@
         "attachments": [...]
     }
 """
+
+import sys
 from subprocess import Popen, PIPE, CalledProcessError
 from json import loads
 from typing import Dict, List, Set
 from os import path
 from dataclasses import dataclass
-import sys
+
 from constants import (WORKING_SPACE,
                        WORKING_SPACE_OUTPUT,
                        WORKING_SPACE_TEMP,

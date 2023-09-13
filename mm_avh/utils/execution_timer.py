@@ -15,6 +15,7 @@
 
 from datetime import datetime
 from time import perf_counter_ns
+
 from dataclasses import dataclass
 from rich.console import Console
 
@@ -97,15 +98,23 @@ class ExecutionTimer:
         hours_alt, minutes_alt, seconds_alt = map(
             float, self.calculate_duration_alt())
 
-        self.console.print('\n[bold white]╚═══════════ EXECUTION TIME ═══════════╝')
-        self.console.print('[bold bright_yellow]        YYYY-MM-DD HH:MM:SS:ms :µs :ns')
-        self.console.print(f'[bright_red bold][[bold white]START[bright_red bold]] {start_date_str}')
-        self.console.print(f'[bright_red bold][[bold white]END[bright_red bold]]   {end_date_str}')
-        self.console.print(f'[bright_red bold][[bold white]TIME[bright_red bold]]  [bold bright_yellow]YYYY-MM-DD {duration}')
+        self.console.print(
+            '\n[bold white]╚═══════════ EXECUTION TIME ═══════════╝')
+        self.console.print(
+            '[bold bright_yellow]        YYYY-MM-DD HH:MM:SS:ms :µs :ns')
+        self.console.print(
+            f'[bright_red bold][[bold white]START[bright_red bold]] {start_date_str}')
+        self.console.print(
+            f'[bright_red bold][[bold white]END[bright_red bold]]   {end_date_str}')
+        self.console.print(
+            f'[bright_red bold][[bold white]TIME[bright_red bold]]  [bold bright_yellow]YYYY-MM-DD {duration}')
         self.console.print('[bright_red bold]                   ^^^^^^^^^^^^')
-        self.console.print(f'[bright_red bold][[bold white]TIME[bright_red bold]]  [white bold]{hours_alt:.9f} hours')
-        self.console.print(f'[bright_red bold][[bold white]TIME[bright_red bold]]  [white bold]{minutes_alt:.9f} minutes')
-        self.console.print(f'[bright_red bold][[bold white]TIME[bright_red bold]]  [white bold]{seconds_alt:.9f} seconds')
+        self.console.print(
+            f'[bright_red bold][[bold white]TIME[bright_red bold]]  [white bold]{hours_alt:.9f} hours')
+        self.console.print(
+            f'[bright_red bold][[bold white]TIME[bright_red bold]]  [white bold]{minutes_alt:.9f} minutes')
+        self.console.print(
+            f'[bright_red bold][[bold white]TIME[bright_red bold]]  [white bold]{seconds_alt:.9f} seconds')
 
 
 def execution_timer(func):

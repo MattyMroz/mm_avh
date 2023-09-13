@@ -27,11 +27,10 @@
             mm_avh.display()
 """
 
-
-import os
+from os import name, system
 import sys
-import threading
-import time
+from threading import Thread
+from time import sleep
 from typing import List
 
 
@@ -91,18 +90,18 @@ class CoolAnimation:
         self.stop_animation = True
 
     def display(self) -> None:
-        if os.name == "nt":
-            os.system("cls")
+        if name == "nt":
+            system("cls")
         else:
-            os.system("clear")
+            system("clear")
         anicount: int = 0
         counttime: int = 0
         i: int = 0
 
-        threading.Thread(target=self.check_input).start()
+        Thread(target=self.check_input).start()
 
         while not self.stop_animation:
-            time.sleep(0.075)
+            sleep(0.075)
             load_str_list: List[str] = list(self.load_str)
             x: int = ord(load_str_list[i])
             y: int = 0
@@ -128,11 +127,11 @@ class CoolAnimation:
                     "\r" + "\033[1;37m" + res_with_anim + "\033[0m")
 
             self.load_str = res
-            time.sleep(0.075)
+            sleep(0.075)
             anicount = (anicount + 1) % 4
             i = (i + 1) % self.ls_len
             counttime = counttime + 1
-        if os.name == "nt":
-            os.system("cls")
+        if name == "nt":
+            system("cls")
         else:
-            os.system("clear")
+            system("clear")

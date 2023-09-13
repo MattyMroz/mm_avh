@@ -638,56 +638,57 @@ def translate_srt(dir_path, file, settings):
     cprint("Tłumaczenie zakończone.", 'green', attrs=['bold'])
 
 
-def srt_to_wav_harpo(dir_path, file, tts_speed, tts_volume):
-    # Inicjalizacja silnika mowy
-    engine = pyttsx3.init()
-    voices = engine.getProperty('voices')
-    for voice in voices:
-        if voice.name == 'Vocalizer Expressive Zosia Harpo 22kHz':
-            engine.setProperty('voice', voice.id)
+    def srt_to_wav_harpo(self, tts_speed: str, tts_volume: str) -> None:
+        self.ansi_srt()
+        # Inicjalizacja silnika mowy
+        engine = pyttsx3.init()
+        voices = engine.getProperty('voices')
+        for voice in voices:
+            if voice.name == 'Vocalizer Expressive Zosia Harpo 22kHz':
+                engine.setProperty('voice', voice.id)
         engine.setProperty('rate', int(tts_speed))  # Szybkość mówienia
         engine.setProperty('volume', float(tts_volume))  # Głośność
 
-    # Konwersja pliku srt
-    # Pobranie pliku .srt
-    subtitles = pysrt.open(os.path.join(dir_path, file), encoding='ANSI')
+        subtitles = pysrt.open(os.path.join(
+            self.working_space_temp_main_subs, self.filename), encoding='ANSI')
 
-    # Odczytanie napisów i zapisanie mowy do pliku WAV
-    output_file = os.path.splitext(os.path.join(dir_path, file))[0] + '.wav'
-    with wave.open(output_file, 'wb') as wav_file:
-        wav_file.setnchannels(1)  # Mono
-        wav_file.setsampwidth(2)  # 16-bit
-        wav_file.setframerate(22500)  # 22kHz
+        # Odczytanie napisów i zapisanie mowy do pliku WAV
+        output_file = os.path.splitext(os.path.join(
+            self.working_space_temp, self.filename))[0] + '.wav'
+        with wave.open(output_file, 'wb') as wav_file:
+            wav_file.setnchannels(1)  # Mono
+            wav_file.setsampwidth(2)  # 16-bit
+            wav_file.setframerate(22500)  # 22kHz
 
-        for i, subtitle in enumerate(subtitles, start=1):
-            print(
-                f"{i}\n{subtitle.start.to_time().strftime('%H:%M:%S.%f')[:-3]} --> {subtitle.end.to_time().strftime('%H:%M:%S.%f')[:-3]}\n{subtitle.text}\n")
+            for i, subtitle in enumerate(subtitles, start=1):
+                print(
+                    f"{i}\n{subtitle.start.to_time().strftime('%H:%M:%S.%f')[:-3]} --> {subtitle.end.to_time().strftime('%H:%M:%S.%f')[:-3]}\n{subtitle.text}\n")
 
-            start_time = subtitle.start.to_time()
-            start_time = start_time.hour * 3600 + start_time.minute * \
-                60 + start_time.second + start_time.microsecond / 1000000
-            # Zapisanie mowy do pliku WAV
-            engine.save_to_file(subtitle.text, os.path.join(
-                dir_path, "temp.wav"))
-            engine.runAndWait()
+                start_time = subtitle.start.to_time()
+                start_time = start_time.hour * 3600 + start_time.minute * \
+                    60 + start_time.second + start_time.microsecond / 1000000
+                # Zapisanie mowy do pliku WAV
+                engine.save_to_file(subtitle.text, os.path.join(
+                    self.working_space_temp, "temp.wav"))
+                engine.runAndWait()
 
-            # Dodanie pustego frame'a do pliku WAV, jeśli jest to wymagane
-            framerate = wav_file.getframerate()
-            nframes = wav_file.getnframes()
-            current_time = nframes / float(framerate)
-            if start_time > current_time:
-                empty_frame_duration = int(
-                    (start_time - current_time) * framerate)
-                empty_frame = b'\x00' * empty_frame_duration * 2
-                wav_file.writeframes(empty_frame)
+                # Dodanie pustego frame'a do pliku WAV, jeśli jest to wymagane
+                framerate = wav_file.getframerate()
+                nframes = wav_file.getnframes()
+                current_time = nframes / float(framerate)
+                if start_time > current_time:
+                    empty_frame_duration = int(
+                        (start_time - current_time) * framerate)
+                    empty_frame = b'\x00' * empty_frame_duration * 2
+                    wav_file.writeframes(empty_frame)
 
-            # Dodanie mowy do pliku WAV
-            with wave.open(os.path.join(dir_path, "temp.wav"), 'rb') as temp_file:
-                data = temp_file.readframes(temp_file.getnframes())
-                wav_file.writeframes(data)
+                # Dodanie mowy do pliku WAV
+                with wave.open(os.path.join(self.working_space_temp, "temp.wav"), 'rb') as temp_file:
+                    data = temp_file.readframes(temp_file.getnframes())
+                    wav_file.writeframes(data)
 
-    # Usunięcie pliku tymczasowego
-    os.remove(os.path.join(dir_path, "temp.wav"))
+        # Usunięcie pliku tymczasowego
+        os.remove(os.path.join(self.working_space_temp, "temp.wav"))
 
 
 def process_subtitle(subtitle):

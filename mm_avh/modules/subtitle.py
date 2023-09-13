@@ -29,21 +29,23 @@
 """
 
 
-import contextlib
-from typing import List, Tuple
-from os import path, remove, makedirs
+from contextlib import suppress
 from dataclasses import dataclass
-from pysubs2 import SSAFile, SSAEvent, load
-from pyasstosrt import Subtitle
-from shutil import move
 from nltk.tokenize import sent_tokenize
-from utils.number_in_words import NumberInWords
+from os import makedirs, path, remove
+from pyasstosrt import Subtitle
+from pysubs2 import load, SSAEvent, SSAFile
+from shutil import move
+from typing import List, Tuple
+
 from constants import (WORKING_SPACE,
                        WORKING_SPACE_OUTPUT,
                        WORKING_SPACE_TEMP,
                        WORKING_SPACE_TEMP_MAIN_SUBS,
                        WORKING_SPACE_TEMP_ALT_SUBS,
                        console)
+
+from utils.number_in_words import NumberInWords
 
 
 @dataclass(slots=True)
@@ -140,7 +142,7 @@ class SubtitleRefactor:
             selection: str = input('')
             if not selection:
                 break
-            with contextlib.suppress(ValueError):
+            with suppress(ValueError):
                 selected_index: int = int(selection) - 1
                 if 0 <= selected_index < len(styles):
                     selected_styles.append(styles[selected_index])
@@ -209,7 +211,6 @@ class SubtitleRefactor:
             Removes the source subtitle file.
         """
         remove(path.join(self.working_space_temp, self.filename))
-        console.print("Usunięto plik źródłowy.", style='yellow_bold')
 
     def ass_to_srt(self) -> None:
         """
@@ -266,7 +267,7 @@ class SubtitleRefactor:
         remove(txt_file_path)
 
         self.filename = self.filename.replace('.txt', '.srt')
-        self.move_srt('main_subs')
+        self.move_srt()
 
     def convert_numbers_in_srt(self) -> None:
         """
@@ -289,7 +290,7 @@ class SubtitleRefactor:
 
         console.print(
             "\nPrzekonwertowano liczby na słowa:", style='green_bold')
-        console.print(srt_file_path)
+        console.print(srt_file_path, '\n')
 
     def srt_to_ass(self) -> None:
         """
@@ -314,13 +315,12 @@ class SubtitleRefactor:
                     ass_subs[i].text = srt_subs[srt_index].text
                     srt_index += 1
             ass_subs.save(output_file_path, format_='ass')
-            console.print(
-                f"Zaktualizowano napisy w pliku {output_file_path}.", style='green_bold')
         else:
             output_file_path = output_file_path.replace('.ass', '.srt')
             move(srt_file_path, output_file_path)
-            console.print(
-                f"Przeniesiono plik {srt_file_path} do {output_file_path}.", style='green_bold')
+
+        console.print("Przeniesiono alternatywne napisy:",style="green_bold")
+        console.print(output_file_path, style="white_bold")
 
         if path.exists(srt_file_path):
             remove(srt_file_path)
