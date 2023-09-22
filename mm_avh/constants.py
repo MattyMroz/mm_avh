@@ -20,6 +20,7 @@ MKVTOOLNIX_FOLDER: str = path.join(
 MKV_EXTRACT_PATH: str = path.join(MKVTOOLNIX_FOLDER, 'mkvextract.exe')
 MKV_MERGE_PATH: str = path.join(MKVTOOLNIX_FOLDER, 'mkvmerge.exe')
 MKV_INFO_PATH: str = path.join(MKVTOOLNIX_FOLDER, 'mkvinfo.exe')
+MKV_PROPEDIT_PATH = path.join(MKVTOOLNIX_FOLDER, 'mkvpropedit.exe')
 
 # Paths for balabolka and ffmpeg
 BALABOLKA_FOLDER: str = path.join(

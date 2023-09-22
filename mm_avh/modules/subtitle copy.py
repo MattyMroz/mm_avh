@@ -32,12 +32,11 @@
 from contextlib import suppress
 from dataclasses import dataclass
 from nltk.tokenize import sent_tokenize
-from os import makedirs, path, remove, stat
+from os import makedirs, path, remove
 from pyasstosrt import Subtitle
 from pysubs2 import load, SSAEvent, SSAFile
 from shutil import move
 from typing import List, Tuple
-import re
 
 from constants import (WORKING_SPACE,
                        WORKING_SPACE_OUTPUT,
@@ -90,12 +89,10 @@ class SubtitleRefactor:
             self._move_subs_to_main()
             return
         main_subs, alt_subs = self._split_subs(subs, selected_styles)
-        self._copy_metadata_and_styles(
-            subs, main_subs, alt_subs, selected_styles)
-        self._save_subs(main_subs, alt_subs, subs, selected_styles)
+        self._copy_metadata_and_styles(subs, main_subs, alt_subs, selected_styles)
+        self._save_subs(main_subs, alt_subs)
         self._remove_source_file()
-        console.print("Podział napisów zakończony pomyślnie.",
-                      style='green_bold')
+        console.print("Podział napisów zakończony pomyślnie.", style='green_bold')
 
     def _create_directories(self) -> None:
         """
@@ -187,18 +184,18 @@ class SubtitleRefactor:
         alt_subs.info = subs.info
 
         main_style_names: List[str] = [style_name for style_name in subs.styles.keys()
-                                       if style_name in selected_styles]
+                                    if style_name in selected_styles]
         main_subs.styles.clear()
         for style_name in main_style_names:
             main_subs.styles[style_name] = subs.styles[style_name]
 
         alt_style_names: List[str] = [style_name for style_name in subs.styles.keys()
-                                      if style_name not in selected_styles]
+                                    if style_name not in selected_styles]
         alt_subs.styles.clear()
         for style_name in alt_style_names:
             alt_subs.styles[style_name] = subs.styles[style_name]
 
-    def _save_subs(self, main_subs: SSAFile, alt_subs: SSAFile, subs: SSAFile, selected_styles: List[str]) -> None:
+    def _save_subs(self, main_subs: SSAFile, alt_subs: SSAFile) -> None:
         """
             Saves the split subtitle files.
         """
@@ -207,26 +204,8 @@ class SubtitleRefactor:
         alt_output_file: str = path.join(
             self.working_space_temp_alt_subs, self.filename)
 
-        main_subs.info = subs.info
-        alt_subs.info = subs.info
-
-        main_style_names: List[str] = [style_name for style_name in subs.styles.keys()
-                                       if style_name in selected_styles]
-        main_subs.styles.clear()
-        for style_name in main_style_names:
-            main_subs.styles[style_name] = subs.styles[style_name]
-
-        alt_style_names: List[str] = [style_name for style_name in subs.styles.keys()
-                                      if style_name not in selected_styles]
-        alt_subs.styles.clear()
-        for style_name in alt_style_names:
-            alt_subs.styles[style_name] = subs.styles[style_name]
-
-        with open(main_output_file, 'w', encoding='utf-8') as main_file:
-            main_file.write(main_subs.to_string(format_='ass'))
-
-        with open(alt_output_file, 'w', encoding='utf-8') as alt_file:
-            alt_file.write(alt_subs.to_string(format_='ass'))
+        main_subs.save(main_output_file)
+        alt_subs.save(alt_output_file)
 
     def _remove_source_file(self) -> None:
         """
@@ -252,7 +231,7 @@ class SubtitleRefactor:
 
     def move_srt(self) -> None:
         """
-            Moves an SRT subtitle file to a specified directory and removes HTML tags.
+            Moves an SRT subtitle file to a specified directory.
         """
         target_file_path: str = path.join(
             self.working_space_temp_main_subs, self.filename)
@@ -262,20 +241,7 @@ class SubtitleRefactor:
 
         source_file_path: str = path.join(
             self.working_space_temp, self.filename)
-
-        # Otwórz plik źródłowy i przeczytaj jego zawartość
-        with open(source_file_path, 'r', encoding='utf-8') as file:
-            file_content = file.read()
-
-        # Usuń znaczniki HTML
-        file_content = re.sub(r'<.*?>', '', file_content)
-
-        # Zapisz zmodyfikowaną zawartość do pliku docelowego
-        with open(target_file_path, 'w', encoding='utf-8') as file:
-            file.write(file_content)
-
-        # Usuń plik źródłowy
-        remove(source_file_path)
+        move(source_file_path, target_file_path)
 
     def txt_to_srt(self, lines_per_caption: int) -> None:
         """
@@ -345,33 +311,21 @@ class SubtitleRefactor:
         output_file_path: str = path.join(
             self.working_space_output, self.filename.replace('.srt', '.ass'))
 
-        if stat(srt_file_path).st_size == 0:
-            return
-
         srt_subs = load(srt_file_path, encoding='utf-8')
 
         if path.exists(ass_file_path):
-            ass_subs = SSAFile.load(ass_file_path)
+            ass_subs = load(ass_file_path, encoding='utf-8')
             srt_index = 0
-            for event in ass_subs.events:
-                if event.type == "Dialogue" and srt_index < len(srt_subs):
-                    srt_lines = srt_subs[srt_index].text.split('\n')
-                    ass_lines = event.text.split('}')
-                    if len(ass_lines) >= len(srt_lines):
-                        for j in range(len(srt_lines)):
-                            last_brace_position = ass_lines[j].rfind('}')
-                            if last_brace_position != -1:
-                                ass_lines[j] = ass_lines[j][:last_brace_position +
-                                                            1] + srt_lines[j]
-                        event.text = '}'.join(ass_lines)
+            for i in range(len(ass_subs)):
+                if ass_subs[i].type == "Dialogue":
+                    ass_subs[i].text = srt_subs[srt_index].text
                     srt_index += 1
-
-            ass_subs.save(output_file_path)
+            ass_subs.save(output_file_path, format_='ass')
         else:
             output_file_path = output_file_path.replace('.ass', '.srt')
             move(srt_file_path, output_file_path)
 
-        console.print("Przeniesiono alternatywne napisy:", style="green_bold")
+        console.print("Przeniesiono alternatywne napisy:",style="green_bold")
         console.print(output_file_path, style="white_bold")
 
         if path.exists(srt_file_path):

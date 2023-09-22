@@ -22,6 +22,7 @@ from modules.mkvtoolnix import MkvToolNix
 from modules.subtitle import SubtitleRefactor
 from modules.subtitle_to_speech import SubtitleToSpeech
 from modules.translator import SubtitleTranslator
+from modules.mkv_processing import MKVProcessing
 
 from utils.cool_animation import CoolAnimation
 from utils.execution_timer import execution_timer
@@ -97,7 +98,7 @@ def refactor_subtitle_file(filename: str):
     if filename.endswith('.srt'):
         subtitle.move_srt()
     if filename.endswith('.txt'):
-        subtitle.txt_to_srt()
+        subtitle.txt_to_srt(10)
 
 
 def translate_subtitles(settings: Settings):  # ✅
@@ -215,6 +216,23 @@ def refactor_alt_subtitles():  # ✅
         subtitle.srt_to_ass()
 
 
+def process_output_files(settings: Settings):
+    files = listdir(WORKING_SPACE_OUTPUT)
+    files_dict = {path.splitext(file)[0]: [] for file in files}
+    for file in files:
+        files_dict[path.splitext(file)[0]].append(file)
+
+    for base_name, files in files_dict.items():
+        if len(files) > 0:
+            # https://trac.ffmpeg.org/wiki/Encode/H.264
+            # crf_value => 0 ... 18 ... 23 ... 51 ... :(
+            # preset_value => 'ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'slower', 'veryslow', 'placebo'
+            subtitle_processor = MKVProcessing(filename=base_name,
+                                               crf_value='18',
+                                               preset_value='medium')
+            subtitle_processor.process_subtitles(settings)
+
+
 @execution_timer  # ❌
 def main():
     display_logo()
@@ -225,8 +243,7 @@ def main():
     convert_numbers_to_words()
     generate_audio_for_subtitles(settings)
     refactor_alt_subtitles()
-    # subtitle_refactor = SubtitleRefactor(filename='1.srt')
-    # subtitle_refactor.srt_to_ass()
+    process_output_files(settings)
 
 
 if __name__ == '__main__':  # ❌

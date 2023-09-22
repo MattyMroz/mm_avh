@@ -28,6 +28,7 @@ from constants import (WORKING_SPACE,
                        WORKING_SPACE_TEMP,
                        MKV_EXTRACT_PATH,
                        MKV_MERGE_PATH, MKV_INFO_PATH,
+                       MKV_PROPEDIT_PATH,
                        console)
 
 
@@ -44,6 +45,7 @@ class MkvToolNix:
         - mkv_extract_path (str): The path to the mkvextract executable.
         - mkv_merge_path (str): The path to the mkvmerge executable.
         - mkv_info_path (str): The path to the mkvinfo executable.
+        - mkv_propedit_path (str): The path to the mkvpropedit executable.
 
     Methods:
         - check_executables(): Checks if the MKVToolNix executables exist at the specified paths.
@@ -58,6 +60,7 @@ class MkvToolNix:
     mkv_extract_path: str = MKV_EXTRACT_PATH
     mkv_merge_path: str = MKV_MERGE_PATH
     mkv_info_path: str = MKV_INFO_PATH
+    mkv_propedit_path: str = MKV_PROPEDIT_PATH
 
     def check_executables(self) -> None:
         """
@@ -150,8 +153,8 @@ class MkvToolNix:
             'id': track['id'],
             'type': track['type'],
             'codec_id': properties.get('codec_id', ''),
-            'language': properties['language'],
-            'language_ietf': properties['language_ietf'],
+            'language': properties.get('language', ''),
+            'language_ietf': properties.get('language_ietf', ''),
             'properties': self._get_track_properties(properties)
         }
 

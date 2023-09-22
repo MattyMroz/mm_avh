@@ -892,7 +892,7 @@ def marge_subtitles_and_lector(dir_path, subtitle_path, lector_path, mkv_file, t
     command = [
         mkvmerge_path, '-o', output_file, '--no-subtitles', '--no-audio', os.path.join(
             dir_path, mkv_file), lector_path,
-        '--language', '0:pol', '--track-name', '0:"Napisy poboczne PL"', subtitle_path
+        '--language', '0:pol', '--track-name', '0:"Napisy Poboczne PL"', subtitle_path
     ]
     process = subprocess.Popen(command)
     cprint(

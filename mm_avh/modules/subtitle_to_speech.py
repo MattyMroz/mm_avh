@@ -428,7 +428,7 @@ class SubtitleToSpeech:
                 - Dict[str, str]: A dictionary of the files in the directory.
         """
         excluded_extensions: List[str] = ["srt", "ass"]
-        return {path.splitext(f)[0].lower(): f for f in listdir(directory) if path.splitext(f)[1][1:].lower() not in excluded_extensions}
+        return {path.splitext(f)[0]: f for f in listdir(directory) if path.splitext(f)[1][1:].lower() not in excluded_extensions}
 
     def _get_file_duration(self, file_path: str) -> float:
         """
@@ -448,17 +448,25 @@ class SubtitleToSpeech:
 
             Args:
                 - input_file_1 (str): The path to the first input file.
-                - input_file_2 (str): The path
                 - input_file_2 (str): The path to the second input file.
                 - output_file (str): The path to the output file.
         """
-        command: List[str] = [
-            self.ffmpeg_path,
-            "-i", input_file_1,
-            "-i", input_file_2,
-            "-filter_complex", "[1:a]volume=7dB[a1];[0:a][a1]amix=inputs=2:duration=first",
-            output_file
-        ]
+        if 'main_subs' in input_file_1:
+            command: List[str] = [
+                self.ffmpeg_path,
+                "-i", input_file_1,
+                "-i", input_file_2,
+                "-filter_complex", "[0:a]volume=7dB[a1];[a1][1:a]amix=inputs=2:duration=first",
+                output_file
+            ]
+        else:
+            command: List[str] = [
+                self.ffmpeg_path,
+                "-i", input_file_1,
+                "-i", input_file_2,
+                "-filter_complex", "[1:a]volume=7dB[a1];[0:a][a1]amix=inputs=2:duration=first",
+                output_file
+            ]
         call(command)
 
     def _convert_to_eac3(self, input_file: str, output_file: str):
@@ -486,7 +494,7 @@ class SubtitleToSpeech:
                 - file_name (str): The name of the files to remove.
         """
         for file in listdir(directory):
-            if path.splitext(file)[0].lower() == file_name:
+            if path.splitext(file)[0] == file_name:
                 remove(path.join(directory, file))
 
     def generate_audio(self, settings: Settings):
