@@ -21,5 +21,4 @@ print(num2words(1925, to='year', lang='pl', currency='PLN'))
 # Wyjście: "czterdzieści dwie euro"
 # Outputs: "czterdzieści dwa euro"
 
-
 # print(num2words(123, ordinal=True, lang='pl'))

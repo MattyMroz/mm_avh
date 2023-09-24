@@ -1,6 +1,7 @@
 from msvcrt import getch
 from natsort import natsorted
-from os import listdir, path
+from os import listdir, makedirs, path
+from shutil import rmtree
 from typing import Dict, List
 
 from constants import (SETTINGS_PATH,
@@ -191,7 +192,7 @@ def ask_to_generate_audio_files(files: List[str]) -> Dict[str, bool]:
         if ask_user("Czy chcesz wygenerować audio dla tego pliku? (T lub Y - tak):"):
             files_to_generate_audio[filename] = True
         else:
-            console.print('Pomijam tę opcję.\n', style='red_bold')
+            console.print('Pomijam tę opcję.', style='red_bold')
             files_to_generate_audio[filename] = False
     return files_to_generate_audio
 
@@ -220,7 +221,8 @@ def process_output_files(settings: Settings):
     files = listdir(WORKING_SPACE_OUTPUT)
     files_dict = {path.splitext(file)[0]: [] for file in files}
     for file in files:
-        files_dict[path.splitext(file)[0]].append(file)
+        if not file.endswith(('.mkv', '.mp4')):
+            files_dict[path.splitext(file)[0]].append(file)
 
     for base_name, files in files_dict.items():
         if len(files) > 0:
@@ -230,7 +232,15 @@ def process_output_files(settings: Settings):
             subtitle_processor = MKVProcessing(filename=base_name,
                                                crf_value='18',
                                                preset_value='medium')
-            subtitle_processor.process_subtitles(settings)
+            subtitle_processor.process_mkv(settings)
+
+
+def clear_temp_folders():
+    folders = [WORKING_SPACE_TEMP, WORKING_SPACE_TEMP_MAIN_SUBS,
+               WORKING_SPACE_TEMP_ALT_SUBS]
+    for folder in folders:
+        rmtree(folder, ignore_errors=True)
+        makedirs(folder, exist_ok=True)
 
 
 @execution_timer  # ❌
@@ -244,6 +254,7 @@ def main():
     generate_audio_for_subtitles(settings)
     refactor_alt_subtitles()
     process_output_files(settings)
+    clear_temp_folders()
 
 
 if __name__ == '__main__':  # ❌

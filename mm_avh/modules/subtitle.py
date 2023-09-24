@@ -330,7 +330,7 @@ class SubtitleRefactor:
 
         console.print(
             "\nPrzekonwertowano liczby na słowa:", style='green_bold')
-        console.print(srt_file_path, '\n')
+        console.print(srt_file_path, '\n', style='white_bold')
 
     def srt_to_ass(self) -> None:
         """

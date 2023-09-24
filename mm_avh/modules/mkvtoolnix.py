@@ -7,13 +7,13 @@
         mkvtoolnix.mkv_extract_track(mkv_info)
 
     * Example output from get_mkv_info():
-    {
-        "container": {...},
-        "global_tags": [...],
-        "tracks": [...],
-        "chapters": [...],
-        "attachments": [...]
-    }
+        {
+            "container": {...},
+            "global_tags": [...],
+            "tracks": [...],
+            "chapters": [...],
+            "attachments": [...]
+        }
 """
 
 import sys
@@ -35,22 +35,21 @@ from constants import (WORKING_SPACE,
 @dataclass(slots=True)
 class MkvToolNix:
     """
-    A class for manipulating MKV files using the MKVToolNix package.
+        A class for manipulating MKV files using the MKVToolNix package.
 
-    Attributes:
-        - filename (str): The name of the MKV file to be processed.
-        - working_space (str): The directory where the MKV file is located.
-        - working_space_output (str): The directory where the output files will be saved.
-        - working_space_temp (str): The directory where temporary files will be saved during processing.
-        - mkv_extract_path (str): The path to the mkvextract executable.
-        - mkv_merge_path (str): The path to the mkvmerge executable.
-        - mkv_info_path (str): The path to the mkvinfo executable.
-        - mkv_propedit_path (str): The path to the mkvpropedit executable.
+        Attributes:
+            - filename (str): The name of the MKV file to be processed.
+            - working_space (str): The directory where the MKV file is located.
+            - working_space_output (str): The directory where the output files will be saved.
+            - working_space_temp (str): The directory where temporary files will be saved during processing.
+            - mkv_extract_path (str): The path to the mkvextract executable.
+            - mkv_merge_path (str): The path to the mkvmerge executable.
+            - mkv_info_path (str): The path to the mkvinfo executable.
+            - mkv_propedit_path (str): The path to the mkvpropedit executable.
 
-    Methods:
-        - check_executables(): Checks if the MKVToolNix executables exist at the specified paths.
-        - get_mkv_info(): Retrieves information about the MKV file using the mkvinfo tool.
-        - mkv_extract_track(data: Dict[str, any]): Extracts the specified tracks from the MKV file using the mkvextract tool.
+        Methods:
+            - get_mkv_info(): Retrieves information about the MKV file using the mkvinfo tool.
+            - mkv_extract_track(data: Dict[str, any]): Extracts the specified tracks from the MKV file using the mkvextract tool.
     """
     filename: str
     working_space: str = WORKING_SPACE
@@ -62,7 +61,7 @@ class MkvToolNix:
     mkv_info_path: str = MKV_INFO_PATH
     mkv_propedit_path: str = MKV_PROPEDIT_PATH
 
-    def check_executables(self) -> None:
+    def _check_executables(self) -> None:
         """
             Checks if the MKVToolNix executables exist at the specified paths.
             If any executable is not found, the program will exit with an error message.
@@ -85,7 +84,7 @@ class MkvToolNix:
             - dict: A dictionary containing information about the MKV file.
         """
         try:
-            self.check_executables()
+            self._check_executables()
             command: List[str] = self._get_mkv_info_command()
             with Popen(command, stdout=PIPE, stderr=PIPE, universal_newlines=True) as process:
                 output, error = process.communicate()
