@@ -27,7 +27,7 @@ from constants import (WORKING_SPACE,
 from data.settings import Settings
 
 
-@dataclass
+@dataclass(slots=True)
 class MKVProcessing:
     """
         The 'MKVProcessing' class is used for processing MKV files.

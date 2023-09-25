@@ -43,7 +43,7 @@ def ask_user(question: str) -> bool:
 
 
 def update_settings() -> Settings:  # ✅
-    if ask_user('Czy chcesz zmienić ustawienia? (T lub Y - tak):'):
+    if ask_user('💾 Czy chcesz zmienić ustawienia? (T lub Y - tak):'):
         Settings.change_settings_save_to_file()
         console.print('Zapisano ustawienia.\n', style='green_bold')
     else:
@@ -52,7 +52,7 @@ def update_settings() -> Settings:  # ✅
 
 
 def extract_tracks_from_mkv():  # ✅
-    if ask_user('Czy chcesz wyciągnąć ścieżki z plików mkv? (T lub Y - tak):'):
+    if ask_user('🧲 Czy chcesz wyciągnąć ścieżki z plików mkv? (T lub Y - tak):'):
         files: List[str] = get_mkv_files(WORKING_SPACE)
         sorted_files: List[str] = natsorted(files)
         for filename in sorted_files:
@@ -103,7 +103,7 @@ def refactor_subtitle_file(filename: str):
 
 
 def translate_subtitles(settings: Settings):  # ✅
-    if not ask_user('Czy chcesz tłumaczyć pliki napisów? (T lub Y - tak):'):
+    if not ask_user('💭 Czy chcesz tłumaczyć pliki napisów? (T lub Y - tak):'):
         console.print('Pomijam tę opcję.\n', style='red_bold')
         return
 
@@ -146,7 +146,7 @@ def translate_files(files_to_translate: dict, settings: Settings):
 
 
 def convert_numbers_to_words():  # ✅
-    if not ask_user('Czy chcesz przekonwertować liczby na słowa w tekście? (T lub Y - tak):'):
+    if not ask_user('🔢 Czy chcesz przekonwertować liczby na słowa w tekście? (T lub Y - tak):'):
         console.print('Pomijam tę opcję.\n', style='red_bold')
         return
 
@@ -174,7 +174,7 @@ def convert_numbers_in_files(files: List[str]):
 
 
 def generate_audio_for_subtitles(settings: Settings) -> None:  # ✅
-    if not ask_user('Czy chcesz generować audio dla napisów? (T lub Y - tak):'):
+    if not ask_user('🎤 Czy chcesz generować audio dla napisów? (T lub Y - tak):'):
         console.print('Pomijam tę opcję.\n', style='red_bold')
         return
 
