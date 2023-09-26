@@ -1,6 +1,6 @@
 deepl
 edge_tts
-googletrans
+googletrans==3.1.0a0
 natsort
 nltk
 pyasstosrt

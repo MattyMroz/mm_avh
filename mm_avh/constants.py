@@ -1,3 +1,29 @@
+"""
+    This script defines various paths to files and folders that are used in the project.
+    It also includes definitions of styles for the rich library, which is used for printing colored text in the console.
+
+    * Example usage:
+        from constants import SETTINGS_PATH, WORKING_SPACE, console
+
+    Variables:
+        - SETTINGS_PATH: Path to the settings file.
+        - WORKING_SPACE: Main working path.
+        - WORKING_SPACE_OUTPUT: Path to the output folder.
+        - WORKING_SPACE_TEMP: Path to the temporary folder.
+        - WORKING_SPACE_TEMP_MAIN_SUBS: Path to the folder with main subtitles.
+        - WORKING_SPACE_TEMP_ALT_SUBS: Path to the folder with alternative subtitles.
+        - MKVTOOLNIX_FOLDER: Path to the mkvtoolnix folder.
+        - MKV_EXTRACT_PATH: Path to the mkvextract.exe file.
+        - MKV_MERGE_PATH: Path to the mkvmerge.exe file.
+        - MKV_INFO_PATH: Path to the mkvinfo.exe file.
+        - MKV_PROPEDIT_PATH: Path to the mkvpropedit.exe file.
+        - BALABOLKA_FOLDER: Path to the balabolka folder.
+        - FFMPEG_FOLDER: Path to the ffmpeg folder.
+        - BALABOLKA_PATH: Path to the balcon.exe file.
+        - FFMPEG_PATH: Path to the ffmpeg.exe file.
+        - console: Instance of the Console class from the rich library, defined with various styles.
+"""
+
 from os import getcwd, pardir, path
 from rich.console import Console
 from rich.theme import Theme

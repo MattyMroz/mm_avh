@@ -26,12 +26,13 @@
         }
 """
 
-from json import load, decoder, dump
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
+from json import decoder, dump, load
 from typing import Dict, List, Optional, Tuple
+import webbrowser
+
 from constants import SETTINGS_PATH, console
 from data.config import Config
-import webbrowser
 
 
 @dataclass(slots=True)

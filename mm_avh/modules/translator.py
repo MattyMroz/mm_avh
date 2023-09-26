@@ -37,11 +37,9 @@ import deepl
 import pyautogui
 import pyperclip
 import pysrt
+from googletrans import Translator
 
 from constants import console
-from googletrans import Translator
-from revChatGPT.V1 import Chatbot
-
 from data.settings import Settings
 
 
@@ -115,8 +113,7 @@ class SubtitleTranslator:
                 '.srt', '_translated_temp.srt')
             subs.save(path.join(dir_path, translated_filename))
             return subs
-        else:
-            subs.save(path.join(dir_path, filename))
+        subs.save(path.join(dir_path, filename))
 
     @staticmethod
     def translate_deepl_api(filename: str, dir_path: str, translated_line_count: int, deepl_api_key: str) -> None:
@@ -169,16 +166,16 @@ class SubtitleTranslator:
 
         def auto_steps():
             screen_width, screen_height = pyautogui.size()
-            x = screen_width * 0.25
-            y = screen_height * 0.5
-            pyautogui.moveTo(x, y)
+            x_coordinate = screen_width * 0.25
+            y_coordinate = screen_height * 0.5
+            pyautogui.moveTo(x_coordinate, y_coordinate)
             pyautogui.click()
             pyautogui.hotkey('ctrl', 'a')
             pyautogui.hotkey('del')
             pyautogui.hotkey('ctrl', 'v')
             sleep(6)
-            x = screen_width * 0.75
-            pyautogui.moveTo(x, y)
+            x_coordinate = screen_width * 0.75
+            pyautogui.moveTo(x_coordinate, y_coordinate)
             pyautogui.click()
             pyautogui.hotkey('ctrl', 'a')
             pyautogui.hotkey('ctrl', 'c')
@@ -322,8 +319,8 @@ Dodatkowe uwagi odnośnie tłumaczenia / dodatkowe informacje o tłumaczonym tek
             if translated_text:
                 translated_lines: List[str] = translated_text.replace(
                     '\r\n', '\n').split(" @@\n")
-                for i in range(len(translated_lines)):
-                    translated_lines[i] = translated_lines[i]
+                for i, line in enumerate(translated_lines):
+                    translated_lines[i] = line
                 if len(translated_lines) != len(group):
                     console.print(
                         f"Błąd: liczba napisów po tłumaczeniu ({len(translated_lines)}) nie jest taka sama jak przed tłumaczeniem ({len(group)})", style='red_bold')

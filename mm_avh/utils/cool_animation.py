@@ -86,16 +86,22 @@ class CoolAnimation:
         self.use_animation: bool = use_animation
 
     def check_input(self) -> None:
+        """
+            Helper method to check for user input and stop the animation.
+        """
         input()
         self.stop_animation = True
 
     def display(self) -> None:
+        """
+            Main method to display the animation effect.
+        """
         if name == "nt":
             system("cls")
         else:
             system("clear")
-        anicount: int = 0
-        counttime: int = 0
+        ani_count: int = 0
+        count_time: int = 0
         i: int = 0
 
         Thread(target=self.check_input).start()
@@ -103,11 +109,11 @@ class CoolAnimation:
         while not self.stop_animation:
             sleep(0.075)
             load_str_list: List[str] = list(self.load_str)
-            x: int = ord(load_str_list[i])
-            y: int = 0
-            if x != 32:  # 32 is ASCII for ' '
-                y = x-32 if x > 90 else x + 32
-                load_str_list[i] = chr(y)
+            ascii_val: int = ord(load_str_list[i])
+            new_ascii_val: int = 0
+            if ascii_val != 32:  # 32 is ASCII for ' '
+                new_ascii_val = ascii_val-32 if ascii_val > 90 else ascii_val + 32
+                load_str_list[i] = chr(new_ascii_val)
             res: str = ''
             for j in range(self.ls_len):
                 res = res + load_str_list[j]
@@ -115,7 +121,7 @@ class CoolAnimation:
             if self.use_animation:
                 middle: int = len(res) // 2 + self.middle_offset
                 res_with_anim: str = res[:middle] + \
-                    self.animation[anicount] + res[middle+1:]
+                    self.animation[ani_count] + res[middle+1:]
             else:
                 res_with_anim = res
 
@@ -128,9 +134,9 @@ class CoolAnimation:
 
             self.load_str = res
             sleep(0.075)
-            anicount = (anicount + 1) % 4
+            ani_count = (ani_count + 1) % 4
             i = (i + 1) % self.ls_len
-            counttime = counttime + 1
+            count_time = count_time + 1
         if name == "nt":
             system("cls")
         else:

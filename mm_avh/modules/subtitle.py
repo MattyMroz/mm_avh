@@ -28,16 +28,16 @@
         subtitle_tool.srt_to_ass()
 """
 
-
+import re
 from contextlib import suppress
 from dataclasses import dataclass
-from nltk.tokenize import sent_tokenize
 from os import makedirs, path, remove, stat
-from pyasstosrt import Subtitle
-from pysubs2 import load, SSAEvent, SSAFile
 from shutil import move
 from typing import List, Tuple
-import re
+
+from nltk.tokenize import sent_tokenize
+from pyasstosrt import Subtitle
+from pysubs2 import load, SSAEvent, SSAFile
 
 from constants import (WORKING_SPACE,
                        WORKING_SPACE_OUTPUT,

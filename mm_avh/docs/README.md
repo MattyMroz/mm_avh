@@ -1,2 +1,0 @@
-# AVH
-Audio Visual Heaven

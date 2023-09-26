@@ -47,9 +47,10 @@
 """
 
 import re
-from six import u
-from typing import List, Union
 from dataclasses import dataclass, field
+from typing import List, Union
+
+from six import u
 
 
 @dataclass
@@ -119,14 +120,10 @@ class NumberInWords:
         """
             This method determines the grammatical case for a given number. It's used to correctly form the word for thousands, millions, etc. in Polish.
         """
-        unit: int = number % 10
-        ten: int = (number // 10) % 10
         if number == 1:
             return 0
-        elif ten == 1 and unit > 1 or not 2 <= unit <= 4:
-            return 2
-        else:
-            return 1
+        unit: int = number % 10
+        return 2 if (number // 10) % 10 == 1 and unit > 1 or not 2 <= unit <= 4 else 1
 
     def number_in_words(self, number: Union[int, float, str]) -> str:
         """
